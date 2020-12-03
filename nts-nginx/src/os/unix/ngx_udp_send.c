@@ -20,7 +20,9 @@ ngx_udp_unix_send(ngx_connection_t *c, u_char *buf, size_t size)
     wev = c->write;
 
     for ( ;; ) {
-        n = sendto(c->fd, buf, size, 0, c->sockaddr, c->socklen);
+        // for nts
+        // n = sendto(c->fd, buf, size, 0, c->sockaddr, c->socklen);
+        n = nts_sendto(c->fd, buf, size, 0, c->sockaddr, c->socklen);
 
         ngx_log_debug4(NGX_LOG_DEBUG_EVENT, c->log, 0,
                        "sendto: fd:%d %z of %uz to \"%V\"",

@@ -664,7 +664,9 @@ ngx_http_ssl_handshake(ngx_event_t *rev)
 
     size = hc->proxy_protocol ? sizeof(buf) : 1;
 
-    n = recv(c->fd, (char *) buf, size, MSG_PEEK);
+    // for nts
+    // n = recv(c->fd, (char *) buf, size, MSG_PEEK);
+    n = nts_recv(c->fd, (char *) buf, size, MSG_PEEK);
 
     err = ngx_socket_errno;
 
@@ -2831,7 +2833,9 @@ ngx_http_test_reading(ngx_http_request_t *r)
          * Solaris returns -1 and sets errno
          */
 
-        if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
+        // for nts
+        // if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
+        if (nts_getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
             == -1)
         {
             err = ngx_socket_errno;
@@ -2842,7 +2846,9 @@ ngx_http_test_reading(ngx_http_request_t *r)
 
 #endif
 
-    n = recv(c->fd, buf, 1, MSG_PEEK);
+    // for nts
+    // n = recv(c->fd, buf, 1, MSG_PEEK);
+    n = nts_recv(c->fd, buf, 1, MSG_PEEK);
 
     if (n == 0) {
         rev->eof = 1;
@@ -3521,7 +3527,9 @@ ngx_http_free_request(ngx_http_request_t *r, ngx_int_t rc)
             linger.l_onoff = 1;
             linger.l_linger = 0;
 
-            if (setsockopt(r->connection->fd, SOL_SOCKET, SO_LINGER,
+            // for nts
+            // if (setsockopt(r->connection->fd, SOL_SOCKET, SO_LINGER,
+            if (nts_setsockopt(r->connection->fd, SOL_SOCKET, SO_LINGER,
                            (const void *) &linger, sizeof(struct linger)) == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, log, ngx_socket_errno,

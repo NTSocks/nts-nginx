@@ -292,7 +292,9 @@ ngx_epoll_aio_init(ngx_cycle_t *cycle, ngx_epoll_conf_t *epcf)
     ee.events = EPOLLIN|EPOLLET;
     ee.data.ptr = &ngx_eventfd_conn;
 
-    if (epoll_ctl(ep, EPOLL_CTL_ADD, ngx_eventfd, &ee) != -1) {
+    // for nts
+    // if (epoll_ctl(ep, EPOLL_CTL_ADD, ngx_eventfd, &ee) != -1) {
+    if (nts_raw_epoll_ctl(ep, EPOLL_CTL_ADD, ngx_eventfd, &ee) != -1) {
         return;
     }
 
@@ -327,7 +329,9 @@ ngx_epoll_init(ngx_cycle_t *cycle, ngx_msec_t timer)
     epcf = ngx_event_get_conf(cycle->conf_ctx, ngx_epoll_module);
 
     if (ep == -1) {
-        ep = epoll_create(cycle->connection_n / 2);
+        // for nts
+        // ep = epoll_create(cycle->connection_n / 2);
+        ep = nts_raw_epoll_create(cycle->connection_n / 2);
 
         if (ep == -1) {
             ngx_log_error(NGX_LOG_EMERG, cycle->log, ngx_errno,
@@ -412,7 +416,9 @@ ngx_epoll_notify_init(ngx_log_t *log)
     ee.events = EPOLLIN|EPOLLET;
     ee.data.ptr = &notify_conn;
 
-    if (epoll_ctl(ep, EPOLL_CTL_ADD, notify_fd, &ee) == -1) {
+    // for nts
+    // if (epoll_ctl(ep, EPOLL_CTL_ADD, notify_fd, &ee) == -1) {
+    if (nts_raw_epoll_ctl(ep, EPOLL_CTL_ADD, notify_fd, &ee) == -1) {
         ngx_log_error(NGX_LOG_EMERG, log, ngx_errno,
                       "epoll_ctl(EPOLL_CTL_ADD, eventfd) failed");
 
@@ -475,7 +481,9 @@ ngx_epoll_test_rdhup(ngx_cycle_t *cycle)
 
     ee.events = EPOLLET|EPOLLIN|EPOLLRDHUP;
 
-    if (epoll_ctl(ep, EPOLL_CTL_ADD, s[0], &ee) == -1) {
+    // for nts
+    // if (epoll_ctl(ep, EPOLL_CTL_ADD, s[0], &ee) == -1) {
+    if (nts_raw_epoll_ctl(ep, EPOLL_CTL_ADD, s[0], &ee) == -1) {
         ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                       "epoll_ctl() failed");
         goto failed;
@@ -490,7 +498,9 @@ ngx_epoll_test_rdhup(ngx_cycle_t *cycle)
 
     s[1] = -1;
 
-    events = epoll_wait(ep, &ee, 1, 5000);
+    // for nts
+    // events = epoll_wait(ep, &ee, 1, 5000);
+    events = nts_raw_epoll_wait(ep, &ee, 1, 5000);
 
     if (events == -1) {
         ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
@@ -529,7 +539,9 @@ failed:
 static void
 ngx_epoll_done(ngx_cycle_t *cycle)
 {
-    if (close(ep) == -1) {
+    // for nts
+    // if (close(ep) == -1) {
+    if (nts_close(ep) == -1) {
         ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                       "epoll close() failed");
     }
@@ -624,7 +636,9 @@ ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
                    "epoll add event: fd:%d op:%d ev:%08XD",
                    c->fd, op, ee.events);
 
-    if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    // for nts
+    // if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    if (nts_raw_epoll_ctl(ep, op, c->fd, &ee) == -1) {
         ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_errno,
                       "epoll_ctl(%d, %d) failed", op, c->fd);
         return NGX_ERROR;
@@ -685,7 +699,9 @@ ngx_epoll_del_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
                    "epoll del event: fd:%d op:%d ev:%08XD",
                    c->fd, op, ee.events);
 
-    if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    // for nts
+    // if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    if (nts_raw_epoll_ctl(ep, op, c->fd, &ee) == -1) {
         ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_errno,
                       "epoll_ctl(%d, %d) failed", op, c->fd);
         return NGX_ERROR;
@@ -708,7 +724,9 @@ ngx_epoll_add_connection(ngx_connection_t *c)
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, c->log, 0,
                    "epoll add connection: fd:%d ev:%08XD", c->fd, ee.events);
 
-    if (epoll_ctl(ep, EPOLL_CTL_ADD, c->fd, &ee) == -1) {
+    // for nts
+    // if (epoll_ctl(ep, EPOLL_CTL_ADD, c->fd, &ee) == -1) {
+    if (nts_raw_epoll_ctl(ep, EPOLL_CTL_ADD, c->fd, &ee) == -1) {
         ngx_log_error(NGX_LOG_ALERT, c->log, ngx_errno,
                       "epoll_ctl(EPOLL_CTL_ADD, %d) failed", c->fd);
         return NGX_ERROR;
@@ -746,7 +764,9 @@ ngx_epoll_del_connection(ngx_connection_t *c, ngx_uint_t flags)
     ee.events = 0;
     ee.data.ptr = NULL;
 
-    if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    // for nts
+    // if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    if (nts_epoll_ctl(ep, op, c->fd, &ee) == -1) {
         ngx_log_error(NGX_LOG_ALERT, c->log, ngx_errno,
                       "epoll_ctl(%d, %d) failed", op, c->fd);
         return NGX_ERROR;
@@ -797,7 +817,9 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                    "epoll timer: %M", timer);
 
-    events = epoll_wait(ep, event_list, (int) nevents, timer);
+    // for nts
+    // events = epoll_wait(ep, event_list, (int) nevents, timer);
+    events = nts_raw_epoll_wait(ep, event_list, (int) nevents, timer);
 
     err = (events == -1) ? ngx_errno : 0;
 

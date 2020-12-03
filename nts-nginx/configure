@@ -23,6 +23,10 @@ if [ $NGX_DEBUG = YES ]; then
     have=NGX_DEBUG . auto/have
 fi
 
+if [ $NGX_USE_NTS = YES ]; then 
+    have=NGX_USE_NTS . auto/have 
+fi
+
 
 if test -z "$NGX_PLATFORM"; then
     echo "checking for OS"

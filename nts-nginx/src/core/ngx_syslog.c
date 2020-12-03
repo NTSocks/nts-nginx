@@ -331,7 +331,9 @@ ngx_syslog_init_peer(ngx_syslog_peer_t *peer)
         goto failed;
     }
 
-    if (connect(fd, peer->server.sockaddr, peer->server.socklen) == -1) {
+    // for nts
+    // if (connect(fd, peer->server.sockaddr, peer->server.socklen) == -1) {
+    if (nts_connect(fd, peer->server.sockaddr, peer->server.socklen) == -1) {
         ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, ngx_socket_errno,
                       "connect() failed");
         goto failed;

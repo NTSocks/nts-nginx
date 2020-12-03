@@ -225,7 +225,9 @@ ngx_stream_proxy_protocol_handler(ngx_event_t *rev)
         return;
     }
 
-    n = recv(c->fd, (char *) buf, sizeof(buf), MSG_PEEK);
+    // for nts
+    // n = recv(c->fd, (char *) buf, sizeof(buf), MSG_PEEK);
+    n = nts_recv(c->fd, (char *)buf, sizeof(buf), MSG_PEEK);
 
     err = ngx_socket_errno;
 

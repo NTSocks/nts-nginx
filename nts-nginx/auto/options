@@ -146,6 +146,11 @@ PCRE_JIT=NO
 USE_OPENSSL=NO
 OPENSSL=NONE
 
+# NTS 
+NGX_USE_NTS=NO 
+NTS_LIB_PATH=
+NTS_SRC_PATH=
+
 USE_ZLIB=NO
 ZLIB=NONE
 ZLIB_OPT=
@@ -351,6 +356,10 @@ use the \"--with-mail_ssl_module\" option instead"
 
         --with-openssl=*)                OPENSSL="$value"           ;;
         --with-openssl-opt=*)            OPENSSL_OPT="$value"       ;;
+
+        --with-nts)                      NGX_USE_NTS=YES            ;;
+        --nts-lib-path=*)                NTS_LIB_PATH="$value"      ;;
+        --nts-src-path=*)                NTS_SRC_PATH="$value"      ;;
 
         --with-md5=*)
             NGX_POST_CONF_MSG="$NGX_POST_CONF_MSG

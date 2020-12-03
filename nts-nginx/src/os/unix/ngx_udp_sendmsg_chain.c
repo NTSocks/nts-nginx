@@ -305,7 +305,9 @@ ngx_sendmsg(ngx_connection_t *c, ngx_iovec_t *vec)
 
 eintr:
 
-    n = sendmsg(c->fd, &msg, 0);
+    // for nts
+    // n = sendmsg(c->fd, &msg, 0);
+    n = nts_sendmsg(c->fd, &msg, 0);
 
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, c->log, 0,
                    "sendmsg: %z of %uz", n, vec->size);

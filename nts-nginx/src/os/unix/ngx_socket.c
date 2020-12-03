@@ -30,7 +30,9 @@ ngx_nonblocking(ngx_socket_t s)
 
     nb = 1;
 
-    return ioctl(s, FIONBIO, &nb);
+    // for nts
+    // return ioctl(s, FIONBIO, &nb);
+    return nts_ioctl(s, FIONBIO, &nb);
 }
 
 
@@ -41,7 +43,9 @@ ngx_blocking(ngx_socket_t s)
 
     nb = 0;
 
-    return ioctl(s, FIONBIO, &nb);
+    // for nts
+    // return ioctl(s, FIONBIO, &nb);
+    return nts_ioctl(s, FIONBIO, &nb);
 }
 
 #endif
@@ -56,7 +60,9 @@ ngx_tcp_nopush(ngx_socket_t s)
 
     tcp_nopush = 1;
 
-    return setsockopt(s, IPPROTO_TCP, TCP_NOPUSH,
+    // for nts
+    // return setsockopt(s, IPPROTO_TCP, TCP_NOPUSH,
+    return nts_setsockopt(s, IPPROTO_TCP, TCP_NOPUSH,
                       (const void *) &tcp_nopush, sizeof(int));
 }
 
@@ -68,7 +74,9 @@ ngx_tcp_push(ngx_socket_t s)
 
     tcp_nopush = 0;
 
-    return setsockopt(s, IPPROTO_TCP, TCP_NOPUSH,
+    // for nts
+    // return setsockopt(s, IPPROTO_TCP, TCP_NOPUSH,
+    return nts_setsockopt(s, IPPROTO_TCP, TCP_NOPUSH,
                       (const void *) &tcp_nopush, sizeof(int));
 }
 
@@ -82,7 +90,9 @@ ngx_tcp_nopush(ngx_socket_t s)
 
     cork = 1;
 
-    return setsockopt(s, IPPROTO_TCP, TCP_CORK,
+    // for nts
+    // return setsockopt(s, IPPROTO_TCP, TCP_CORK,
+    return nts_setsockopt(s, IPPROTO_TCP, TCP_CORK,
                       (const void *) &cork, sizeof(int));
 }
 
@@ -94,7 +104,9 @@ ngx_tcp_push(ngx_socket_t s)
 
     cork = 0;
 
-    return setsockopt(s, IPPROTO_TCP, TCP_CORK,
+    // for nts
+    // return setsockopt(s, IPPROTO_TCP, TCP_CORK,
+    return nts_setsockopt(s, IPPROTO_TCP, TCP_CORK,
                       (const void *) &cork, sizeof(int));
 }
 

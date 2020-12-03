@@ -11,6 +11,9 @@
 
 #include <ngx_config.h>
 
+// for nts
+#include <nts/nts_api.h>
+
 
 typedef struct ngx_module_s          ngx_module_t;
 typedef struct ngx_conf_s            ngx_conf_t;

@@ -1400,7 +1400,9 @@ ngx_http_upstream_check_broken_connection(ngx_http_request_t *r,
          * Solaris returns -1 and sets errno
          */
 
-        if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
+        // for nts
+        // if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
+        if (nts_getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
             == -1)
         {
             err = ngx_socket_errno;
@@ -1433,7 +1435,9 @@ ngx_http_upstream_check_broken_connection(ngx_http_request_t *r,
 
 #endif
 
-    n = recv(c->fd, buf, 1, MSG_PEEK);
+    // for nts
+    // n = recv(c->fd, buf, 1, MSG_PEEK);
+    n = nts_recv(c->fd, buf, 1, MSG_PEEK);
 
     err = ngx_socket_errno;
 
@@ -2658,7 +2662,9 @@ ngx_http_upstream_test_connect(ngx_connection_t *c)
          * Solaris returns -1 and sets errno
          */
 
-        if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
+        // for nts
+        // if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
+        if (nts_getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
             == -1)
         {
             err = ngx_socket_errno;

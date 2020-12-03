@@ -16,7 +16,9 @@
 
 typedef int  ngx_socket_t;
 
-#define ngx_socket          socket
+// for nts
+// #define ngx_socket          socket
+#define ngx_socket          nts_socket
 #define ngx_socket_n        "socket()"
 
 
@@ -30,10 +32,14 @@ int ngx_blocking(ngx_socket_t s);
 
 #else
 
-#define ngx_nonblocking(s)  fcntl(s, F_SETFL, fcntl(s, F_GETFL) | O_NONBLOCK)
+// for nts
+// #define ngx_nonblocking(s)  fcntl(s, F_SETFL, fcntl(s, F_GETFL) | O_NONBLOCK)
+#define ngx_nonblocking(s)  nts_fcntl(s, F_SETFL, nts_fcntl(s, F_GETFL) | O_NONBLOCK)
 #define ngx_nonblocking_n   "fcntl(O_NONBLOCK)"
 
-#define ngx_blocking(s)     fcntl(s, F_SETFL, fcntl(s, F_GETFL) & ~O_NONBLOCK)
+// for nts
+// #define ngx_blocking(s)     fcntl(s, F_SETFL, fcntl(s, F_GETFL) & ~O_NONBLOCK)
+#define ngx_blocking(s)     nts_fcntl(s, F_SETFL, nts_fcntl(s, F_GETFL) & ~O_NONBLOCK)
 #define ngx_blocking_n      "fcntl(!O_NONBLOCK)"
 
 #endif
@@ -54,10 +60,13 @@ int ngx_tcp_push(ngx_socket_t s);
 #endif
 
 
-#define ngx_shutdown_socket    shutdown
+// for nts
+// #define ngx_shutdown_socket    shutdown
+#define ngx_shutdown_socket     nts_shutdown
 #define ngx_shutdown_socket_n  "shutdown()"
 
-#define ngx_close_socket    close
+// #define ngx_close_socket    close
+#define ngx_close_socket    nts_close
 #define ngx_close_socket_n  "close() socket"
 
 

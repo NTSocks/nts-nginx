@@ -62,12 +62,18 @@ ngx_event_accept(ngx_event_t *ev)
 
 #if (NGX_HAVE_ACCEPT4)
         if (use_accept4) {
-            s = accept4(lc->fd, &sa.sockaddr, &socklen, SOCK_NONBLOCK);
+            // for nts
+            // s = accept4(lc->fd, &sa.sockaddr, &socklen, SOCK_NONBLOCK);
+            s = nts_accept4(lc->fd, &sa.sockaddr, &socklen, SOCK_NONBLOCK);
         } else {
-            s = accept(lc->fd, &sa.sockaddr, &socklen);
+            // for nts
+            // s = accept(lc->fd, &sa.sockaddr, &socklen);
+            s = nts_accept(lc->fd, &sa.sockaddr, &socklen);
         }
 #else
-        s = accept(lc->fd, &sa.sockaddr, &socklen);
+        // for nts
+        // s = accept(lc->fd, &sa.sockaddr, &socklen);
+        s = nts_accept(lc->fd, &sa.sockaddr, &socklen);
 #endif
 
         if (s == (ngx_socket_t) -1) {
@@ -404,7 +410,9 @@ ngx_event_recvmsg(ngx_event_t *ev)
 
 #endif
 
-        n = recvmsg(lc->fd, &msg, 0);
+        // for nts
+        // n = recvmsg(lc->fd, &msg, 0);
+        n = nts_recvmsg(lc->fd, &msg, 0);
 
         if (n == -1) {
             err = ngx_socket_errno;

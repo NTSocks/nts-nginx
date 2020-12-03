@@ -356,7 +356,9 @@ ngx_select_repair_fd_sets(ngx_cycle_t *cycle)
         s = master_read_fd_set.fd_array[i];
         len = sizeof(int);
 
-        if (getsockopt(s, SOL_SOCKET, SO_TYPE, (char *) &n, &len) == -1) {
+        // for nts
+        // if (getsockopt(s, SOL_SOCKET, SO_TYPE, (char *) &n, &len) == -1) {
+        if (nts_getsockopt(s, SOL_SOCKET, SO_TYPE, (char *) &n, &len) == -1) {
             err = ngx_socket_errno;
 
             ngx_log_error(NGX_LOG_ALERT, cycle->log, err,
@@ -371,7 +373,9 @@ ngx_select_repair_fd_sets(ngx_cycle_t *cycle)
         s = master_write_fd_set.fd_array[i];
         len = sizeof(int);
 
-        if (getsockopt(s, SOL_SOCKET, SO_TYPE, (char *) &n, &len) == -1) {
+        // for nts
+        // if (getsockopt(s, SOL_SOCKET, SO_TYPE, (char *) &n, &len) == -1) {
+        if (nts_getsockopt(s, SOL_SOCKET, SO_TYPE, (char *) &n, &len) == -1) {
             err = ngx_socket_errno;
 
             ngx_log_error(NGX_LOG_ALERT, cycle->log, err,

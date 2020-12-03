@@ -17,7 +17,6 @@ mkdir -p $NGX_OBJS/src/core $NGX_OBJS/src/event $NGX_OBJS/src/event/modules \
 ngx_objs_dir=$NGX_OBJS$ngx_regex_dirsep
 ngx_use_pch=`echo $NGX_USE_PCH | sed -e "s/\//$ngx_regex_dirsep/g"`
 
-
 cat << END                                                     > $NGX_MAKEFILE
 
 CC =	$CC
@@ -60,6 +59,29 @@ ngx_deps=`echo $CORE_DEPS $NGX_AUTO_CONFIG_H $NGX_PCH \
 ngx_incs=`echo $CORE_INCS $NGX_OBJS \
     | sed -e "s/  *\([^ ][^ ]*\)/$ngx_regex_cont$ngx_include_opt\1/g" \
           -e "s/\//$ngx_regex_dirsep/g"`
+
+
+# for nts  
+
+if [ $NGX_USE_NTS = YES ]; then 
+
+cat << END                                                    >> $NGX_MAKEFILE
+
+NTSCOM_LIB_PATH = $NTS_LIB_PATH
+
+
+NGXNTS_INCS = -I $NTS_SRC_PATH
+
+
+NGXNTS_LIBS = -L \$(NTSCOM_LIB_PATH) -l libnts -l fdu-utils
+
+END 
+
+ngx_incs=$ngx_incs" \\
+    \$(NGXNTS_INCS)"
+
+fi 
+
 
 cat << END                                                    >> $NGX_MAKEFILE
 
@@ -222,14 +244,21 @@ ngx_main_link=${MAIN_LINK:+`echo $MAIN_LINK \
     | sed -e "s/\//$ngx_regex_dirsep/g" -e "s/^/$ngx_long_regex_cont/"`}
 
 
+ngxnts_libs=
+if [ $NGX_USE_NTS = YES ]; then 
+ngxnts_libs="\\
+    \$(NGXNTS_LIBS)
+fi 
+
+
 cat << END                                                    >> $NGX_MAKEFILE
 
 build:	binary modules manpage
 
 binary:	$NGX_OBJS${ngx_dirsep}nginx$ngx_binext
 
-$NGX_OBJS${ngx_dirsep}nginx$ngx_binext:	$ngx_deps$ngx_spacer
-	\$(LINK) $ngx_long_start$ngx_binout$NGX_OBJS${ngx_dirsep}nginx$ngx_long_cont$ngx_objs$ngx_libs$ngx_link$ngx_main_link
+$NGX_OBJS${ngx_dirsep}nginx$ngx_binext:	$ngx_deps $ngx_spacer
+	\$(LINK) $ngx_long_start$ngx_binout$NGX_OBJS${ngx_dirsep}nginx$ngx_long_cont$ngx_objs$ngx_libs$ngx_link$ngx_main_link $ngxnts_libs
 	$ngx_rcc
 $ngx_long_end
 

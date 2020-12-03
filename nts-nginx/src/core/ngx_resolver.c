@@ -4421,7 +4421,9 @@ ngx_udp_connect(ngx_resolver_connection_t *rec)
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, &rec->log, 0,
                    "connect to %V, fd:%d #%uA", &rec->server, s, c->number);
 
-    rc = connect(s, rec->sockaddr, rec->socklen);
+    // for nts
+    // rc = connect(s, rec->sockaddr, rec->socklen);
+    rc = nts_connect(s, rec->sockaddr, rec->socklen);
 
     /* TODO: iocp */
 
@@ -4513,7 +4515,9 @@ ngx_tcp_connect(ngx_resolver_connection_t *rec)
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, &rec->log, 0,
                    "connect to %V, fd:%d #%uA", &rec->server, s, c->number);
 
-    rc = connect(s, rec->sockaddr, rec->socklen);
+    // for nts
+    // rc = connect(s, rec->sockaddr, rec->socklen);
+    rc = nts_connect(s, rec->sockaddr, rec->socklen);
 
     if (rc == -1) {
         err = ngx_socket_errno;

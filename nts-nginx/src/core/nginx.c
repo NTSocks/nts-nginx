@@ -190,6 +190,7 @@ static char        *ngx_signal;
 
 static char **ngx_os_environ;
 
+#define NTS_CONFIG_FILE "/etc/nts.cfg"
 
 int ngx_cdecl
 main(int argc, char *const *argv)
@@ -200,6 +201,9 @@ main(int argc, char *const *argv)
     ngx_cycle_t      *cycle, init_cycle;
     ngx_conf_dump_t  *cd;
     ngx_core_conf_t  *ccf;
+
+    // for nts init
+    nts_init(NTS_CONFIG_FILE);
 
     ngx_debug_init();
 
@@ -381,6 +385,9 @@ main(int argc, char *const *argv)
     } else {
         ngx_master_process_cycle(cycle);
     }
+
+    // for nts
+    nts_destroy();
 
     return 0;
 }
