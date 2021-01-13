@@ -202,9 +202,6 @@ main(int argc, char *const *argv)
     ngx_conf_dump_t  *cd;
     ngx_core_conf_t  *ccf;
 
-    // for nts init
-    nts_init(NTS_CONFIG_FILE);
-
     ngx_debug_init();
 
     if (ngx_strerror_init() != NGX_OK) {
@@ -242,6 +239,11 @@ main(int argc, char *const *argv)
     /* STUB */
 #if (NGX_OPENSSL)
     ngx_ssl_init(log);
+#endif
+
+#if (NGX_USE_NTS)
+    // for nts init
+    nts_init(NTS_CONFIG_FILE);
 #endif
 
     /*
@@ -386,8 +388,10 @@ main(int argc, char *const *argv)
         ngx_master_process_cycle(cycle);
     }
 
+#if (NGX_USE_NTS)
     // for nts
     nts_destroy();
+#endif
 
     return 0;
 }

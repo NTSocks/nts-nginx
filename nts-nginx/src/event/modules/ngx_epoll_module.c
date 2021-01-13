@@ -766,7 +766,7 @@ ngx_epoll_del_connection(ngx_connection_t *c, ngx_uint_t flags)
 
     // for nts
     // if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
-    if (nts_epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    if (nts_raw_epoll_ctl(ep, op, c->fd, &ee) == -1) {
         ngx_log_error(NGX_LOG_ALERT, c->log, ngx_errno,
                       "epoll_ctl(%d, %d) failed", op, c->fd);
         return NGX_ERROR;
