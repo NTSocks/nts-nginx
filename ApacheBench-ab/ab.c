@@ -248,6 +248,7 @@ typedef enum {
 } connect_state_e;
 
 #define CBUFFSIZE (2048)
+#define ROWS_N 20
 #define ROWS 20
 
 struct connection {
@@ -264,7 +265,7 @@ struct connection {
     apr_size_t bread;           /* amount of body read */
     apr_size_t rwrite, rwrote;  /* keep pointers in what we write - across
                                  * EAGAINs */
-    apr_size_t length[ROWS];          /* Content-Length value used for keep-alive */
+    apr_size_t length[ROWS_N];          /* Content-Length value used for keep-alive */
     char cbuff[CBUFFSIZE];      /* a buffer to store server response header */
     int cbx;                    /* offset in cbuffer */
     int keepalive;              /* non-zero if a keep-alive request */
@@ -320,7 +321,7 @@ int windowsize = 0;     /* we use the OS default window size */
 char servername[1024];  /* name that server reports */
 char *hostname;         /* host name from URL */
 char *host_field;       /* value of "Host:" header field */
-char path[ROWS][30] = {
+char path[ROWS_N][30] = {
     "/VOD4K/Test_track17.8.mp4",
     "/VOD4K/Test_track18.8.mp4",
     "/VOD4K/Test_track19.8.mp4",
@@ -863,7 +864,7 @@ static void write_request(struct connection * c)
     c->url_idx++;
     c->endwrite = lasttime = apr_time_now();
     // printf("c->url_idx=%d, c->endwrite=%lu\n", c->url_idx, c->endwrite);
-    set_conn_state(c, STATE_READ);  //!!??
+    // set_conn_state(c, STATE_READ);  //!!??
 }
 
 /* --------------------------------------------------------- */
@@ -1497,8 +1498,7 @@ static void start_connect(struct connection * c)
     } else
 #endif
     {
-        printf("mylog, start connect, write_request\n");
-        //!!??
+        sleep(1);
         write_request(c);
     }
 }
@@ -1581,7 +1581,6 @@ static void close_connection(struct connection * c)
 /* --------------------------------------------------------- */
 
 /* read data from connection */
-//!!??
 static void read_connection(struct connection * c)
 {
     apr_size_t r;
@@ -1589,259 +1588,275 @@ static void read_connection(struct connection * c)
     char *part;
     char respcode[4];       /* 3 digits and null */
     int rc = 0;
+    printf("read_connection start... [c->bread = %lu]\n", c->bread);
 
-
-    r = sizeof(buffer);
+    while (true) {
+        r = sizeof(buffer);
 #ifdef USE_SSL
-    if (c->ssl) {
-        status = SSL_read(c->ssl, buffer, r);
-        if (status <= 0) {
-            int scode = SSL_get_error(c->ssl, status);
+        if (c->ssl) {
+            status = SSL_read(c->ssl, buffer, r);
+            if (status <= 0) {
+                int scode = SSL_get_error(c->ssl, status);
 
-            if (scode == SSL_ERROR_ZERO_RETURN) {
-                /* connection closed cleanly: */
-                good++;
-                close_connection(c);
-            }
-            else if (scode != SSL_ERROR_WANT_WRITE
-                     && scode != SSL_ERROR_WANT_READ) {
-                /* some fatal error: */
-                c->read = 0;
-                BIO_printf(bio_err, "SSL read failed - closing connection\n");
-                ERR_print_errors(bio_err);
-                close_connection(c);
-            }
-            return;
-        }
-        r = status;
-    }
-    else
-#endif
-    {
-        //!!?? 
-        rc = nts_read(c->ntsockfd, buffer, r);
-        if (rc <= 0) {
-            close_connection(c);
-            return;
-        }
-
-        // status = apr_socket_recv(c->aprsock, buffer, &r);
-        // // printf("apr socket recv, status=%d, r=%lu\n", status, r);
-        // if (APR_STATUS_IS_EAGAIN(status))
-        //     return;
-        // else if (r == 0 && APR_STATUS_IS_EOF(status)) {
-        //     good++;
-        //     // printf("mylog, c->bread=%lu, c->length=%lu, c->url_idx=%d, req_num=%d, c->cur_req_idx=%d, END\n", c->bread, c->length[c->url_idx - 1], c->url_idx, req_num, c->cur_req_idx);
-        //     //!!??
-        //     close_connection(c);
-        //     return;
-        // }
-        // /* catch legitimate fatal apr_socket_recv errors */
-        // else if (status != APR_SUCCESS) {
-        //     err_recv++;
-        //     if (recverrok) {
-        //         bad++;
-        //         //!!??
-        //         close_connection(c);
-        //         if (verbosity >= 1) {
-        //             char buf[120];
-        //             fprintf(stderr,"%s: %s (%d)\n", "apr_socket_recv", apr_strerror(status, buf, sizeof buf), status);
-        //         }
-        //         return;
-        //     } else {
-        //         apr_err("apr_socket_recv", status);
-        //     }
-        // }
-    }
-
-    totalread += rc;
-    if (c->read == 0) {
-        c->beginread = apr_time_now();
-        c->waittime += (c->beginread - c->endwrite);
-        // printf("c->url_idx=%d, c->cur_req_idx=%d\n", c->url_idx, c->cur_req_idx);
-        // if (c->url_idx == 1)
-        //     c->stime[c->cur_req_idx] = apr_time_now();
-        // printf("c->url_idx=%d, c->beginread=%lu, c->beginread-c->endwrite=%lu, c->waittime=%lu\n", c->url_idx, c->beginread, c->beginread-c->endwrite, c->waittime);
-    }
-    c->read += rc;
-    // printf("mylog, r=%lu, c->read=%lu, totalread=%lu, END\n", r, c->read, totalread);
-    // printf("mylog, buff=%s, r=%lu, END\n", buffer, r);
-    if (!c->gotheader) {
-        char *s;
-        int l = 4;
-        apr_size_t space = CBUFFSIZE - c->cbx - 1; /* -1 allows for \0 term */
-        int tocopy = (space < r) ? space : r;
-#ifdef NOT_ASCII
-        apr_size_t inbytes_left = space, outbytes_left = space;
-
-        status = apr_xlate_conv_buffer(from_ascii, buffer, &inbytes_left,
-                           c->cbuff + c->cbx, &outbytes_left);
-        if (status || inbytes_left || outbytes_left) {
-            fprintf(stderr, "only simple translation is supported (%d/%" APR_SIZE_T_FMT
-                            "/%" APR_SIZE_T_FMT ")\n", status, inbytes_left, outbytes_left);
-            exit(1);
-        }
-#else
-        memcpy(c->cbuff + c->cbx, buffer, space);
-#endif              /* NOT_ASCII */
-        // printf("mylog, c->cbuff + c->cbx=%s, END\n", c->cbuff + c->cbx);
-        c->cbx += tocopy;
-        space -= tocopy;
-        c->cbuff[c->cbx] = 0;   /* terminate for benefit of strstr */
-        if (verbosity >= 2) {
-            printf("LOG: header received:\n%s\n", c->cbuff);
-        }
-        s = strstr(c->cbuff, "\r\n\r\n");
-        /*
-         * this next line is so that we talk to NCSA 1.5 which blatantly
-         * breaks the http specifaction
-         */
-        if (!s) {
-            s = strstr(c->cbuff, "\n\n");
-            l = 2;
-        }
-
-        if (!s) {
-            /* read rest next time */
-            if (space) {
+                if (scode == SSL_ERROR_ZERO_RETURN) {
+                    /* connection closed cleanly: */
+                    good++;
+                    close_connection(c);
+                }
+                else if (scode != SSL_ERROR_WANT_WRITE
+                        && scode != SSL_ERROR_WANT_READ) {
+                    /* some fatal error: */
+                    c->read = 0;
+                    BIO_printf(bio_err, "SSL read failed - closing connection\n");
+                    ERR_print_errors(bio_err);
+                    close_connection(c);
+                }
                 return;
             }
-            else {
-            /* header is in invalid or too big - close connection */
-                set_conn_state(c, STATE_UNCONNECTED);
-                //!!??
-                nts_close(c->ntsockfd);
-                // apr_socket_close(c->aprsock);
-                err_response++;
-                if (bad++ > 10) {
-                    err("\nTest aborted after 10 failures\n\n");
-                }
-                //!!??
-                start_connect(c);
+            r = status;
+        }
+        else
+#endif
+        {
+            //!!?? 
+            // rc = nts_read(c->ntsockfd, buffer, r);
+            rc = nts_recv(c->ntsockfd, buffer, r, MSG_DONTWAIT);
+            if (rc < 0) {
+                close_connection(c);
+                return;
+            } else if (rc == 0) {
+                return;
             }
+            r = rc;
+
+            // status = apr_socket_recv(c->aprsock, buffer, &r);
+            // // printf("apr socket recv, status=%d, r=%lu\n", status, r);
+            // if (APR_STATUS_IS_EAGAIN(status))
+            //     return;
+            // else if (r == 0 && APR_STATUS_IS_EOF(status)) {
+            //     good++;
+            //     // printf("mylog, c->bread=%lu, c->length=%lu, c->url_idx=%d, req_num=%d, c->cur_req_idx=%d, END\n", c->bread, c->length[c->url_idx - 1], c->url_idx, req_num, c->cur_req_idx);
+            //     //!!??
+            //     close_connection(c);
+            //     return;
+            // }
+            // /* catch legitimate fatal apr_socket_recv errors */
+            // else if (status != APR_SUCCESS) {
+            //     err_recv++;
+            //     if (recverrok) {
+            //         bad++;
+            //         //!!??
+            //         close_connection(c);
+            //         if (verbosity >= 1) {
+            //             char buf[120];
+            //             fprintf(stderr,"%s: %s (%d)\n", "apr_socket_recv", apr_strerror(status, buf, sizeof buf), status);
+            //         }
+            //         return;
+            //     } else {
+            //         apr_err("apr_socket_recv", status);
+            //     }
+            // }
+        }
+
+        totalread += rc;
+        if (c->read == 0) {
+            c->beginread = apr_time_now();
+            c->waittime += (c->beginread - c->endwrite);
+            // printf("c->url_idx=%d, c->cur_req_idx=%d\n", c->url_idx, c->cur_req_idx);
+            // if (c->url_idx == 1)
+            //     c->stime[c->cur_req_idx] = apr_time_now();
+            // printf("c->url_idx=%d, c->beginread=%lu, c->beginread-c->endwrite=%lu, c->waittime=%lu\n", c->url_idx, c->beginread, c->beginread-c->endwrite, c->waittime);
+        }
+        c->read += rc;
+
+        if (!c->gotheader) {
+            char *s;
+            int l = 4;
+            apr_size_t space = CBUFFSIZE - c->cbx - 1; /* -1 allows for \0 term */
+            int tocopy = (space < r) ? space : r;
+            printf("space = %lu, r = %lu, tocopy = %u \n", space, r, tocopy);
+    #ifdef NOT_ASCII
+            apr_size_t inbytes_left = space, outbytes_left = space;
+
+            status = apr_xlate_conv_buffer(from_ascii, buffer, &inbytes_left,
+                            c->cbuff + c->cbx, &outbytes_left);
+            if (status || inbytes_left || outbytes_left) {
+                fprintf(stderr, "only simple translation is supported (%d/%" APR_SIZE_T_FMT
+                                "/%" APR_SIZE_T_FMT ")\n", status, inbytes_left, outbytes_left);
+                exit(1);
+            }
+    #else
+            memcpy(c->cbuff + c->cbx, buffer, space);
+    #endif              /* NOT_ASCII */
+
+            c->cbx += tocopy;
+            space -= tocopy;
+            c->cbuff[c->cbx] = 0;   /* terminate for benefit of strstr */
+            if (verbosity >= 2) {
+                printf("LOG: header received:\n%s\n", c->cbuff);
+            }
+
+            s = strstr(c->cbuff, "\r\n\r\n");
+            printf("s = %p\n", s);
+            /*
+            * this next line is so that we talk to NCSA 1.5 which blatantly
+            * breaks the http specifaction
+            */
+            if (!s) {
+                s = strstr(c->cbuff, "\n\n");
+                l = 2;
+            }
+
+            printf("s = %p\n", s);
+            if (!s) {
+                printf("read rest next time\n");
+                /* read rest next time */
+                if (space) {
+                    return;
+                }
+                else {
+                /* header is in invalid or too big - close connection */
+                    set_conn_state(c, STATE_UNCONNECTED);
+                    //!!??
+                    nts_close(c->ntsockfd);
+                    // apr_socket_close(c->aprsock);
+                    err_response++;
+                    if (bad++ > 10) {
+                        err("\nTest aborted after 10 failures\n\n");
+                    }
+                    //!!??
+                    start_connect(c);
+                }
+            }
+            else {
+                printf("have full header \n\n");
+                /* have full header */
+                if (!good) {
+                    /*
+                    * this is first time, extract some interesting info
+                    */
+                    char *p, *q;
+                    p = strstr(c->cbuff, "Server:");
+                    q = servername;
+                    if (p) {
+                        p += 8;
+                        while (*p > 32)
+                        *q++ = *p++;
+                    }
+                    *q = 0;
+                }
+                /*
+                * XXX: this parsing isn't even remotely HTTP compliant... but in
+                * the interest of speed it doesn't totally have to be, it just
+                * needs to be extended to handle whatever servers folks want to
+                * test against. -djg
+                */
+
+                /* check response code */
+                part = strstr(c->cbuff, "HTTP");    /* really HTTP/1.x_ */
+                if (part && strlen(part) > strlen("HTTP/1.x_")) {
+                    strncpy(respcode, (part + strlen("HTTP/1.x_")), 3);
+                    respcode[3] = '\0';
+                }
+                else {
+                    strcpy(respcode, "500");
+                }
+
+                if (respcode[0] != '2') {
+                    err_response++;
+                    if (verbosity >= 2)
+                        printf("WARNING: Response code not 2xx (%s)\n", respcode);
+                }
+                else if (verbosity >= 3) {
+                    printf("LOG: Response code = %s\n", respcode);
+                }
+                c->gotheader = 1;
+                *s = 0;     /* terminate at end of header */
+                if (keepalive &&
+                (strstr(c->cbuff, "Keep-Alive")
+                || strstr(c->cbuff, "keep-alive"))) {  /* for benefit of MSIIS */
+                    char *cl;
+                    cl = strstr(c->cbuff, "Content-Length:");
+                    /* handle NCSA, which sends Content-length: */
+                    if (!cl)
+                        cl = strstr(c->cbuff, "Content-length:");
+                    if (cl) {
+                        c->keepalive = 1;
+                        /* response to HEAD doesn't have entity body */
+                        if (c->cur_req_idx == 0)
+                            c->length[c->url_idx - 1] = posting >= 0 ? atoi(cl + 16) : 0;
+                    }
+                    /* The response may not have a Content-Length header */
+                    if (!cl) {
+                        c->keepalive = 1;
+                        if (c->cur_req_idx == 0)
+                            c->length[c->url_idx - 1] = 0; 
+                    }
+                }
+                printf("[Inheader Before] c->bread = %lu, c->cbx = %u, (s + l - c->cbuff) = %lu, r= %lu, tocopy= %u \n",
+                        c->bread, c->cbx, (s + l - c->cbuff), r, tocopy);
+                c->bread += c->cbx - (s + l - c->cbuff) + r - tocopy;
+                totalbread += c->bread;
+                printf("receive header: c->bread = %lu, totalbread = %lu, r = %lu\n", c->bread, totalbread, r);
+            }
+            // todo printf("mylog, c->length=%lu, END\n", c->length);
         }
         else {
-            /* have full header */
-            if (!good) {
-                /*
-                 * this is first time, extract some interesting info
-                 */
-                char *p, *q;
-                p = strstr(c->cbuff, "Server:");
-                q = servername;
-                if (p) {
-                    p += 8;
-                    while (*p > 32)
-                    *q++ = *p++;
-                }
-                *q = 0;
+            /* outside header, everything we have read is entity body */
+            c->bread += r;
+            totalbread += r;
+            printf("receive body: c->bread = %lu, totalbread = %lu, r = %lu\n", c->bread, totalbread, r);
+        }
+        
+        if (c->keepalive && (c->bread >= c->length[c->url_idx - 1])) {
+            printf("finished a keep-alive connection with c->bread=%lu, c->length=%lu \n", c->bread, c->length[c->url_idx - 1]);
+            /* finished a keep-alive connection */
+            // printf("mylog, finished a keep-alive connection, c->bread=%lu, c->length=%lu, c->url_idx=%d, c->cur_req_idx = %d, req_num=%d, c->bread=%lu, END\n", c->bread, c->length, c->url_idx, c->cur_req_idx, req_num, c->bread);
+            good++;
+            /* save out time */
+            // if (good == 1) {
+            //     /* first time here */
+            //     doclen = c->bread;
+            // }
+            // else if (c->bread != doclen) {
+            //     bad++;
+            //     err_length++;
+            // }
+            if (c->bread != c->length[c->url_idx - 1]){
+                bad++;
+                err_length++;
             }
-            /*
-             * XXX: this parsing isn't even remotely HTTP compliant... but in
-             * the interest of speed it doesn't totally have to be, it just
-             * needs to be extended to handle whatever servers folks want to
-             * test against. -djg
-             */
-
-            /* check response code */
-            part = strstr(c->cbuff, "HTTP");    /* really HTTP/1.x_ */
-            if (part && strlen(part) > strlen("HTTP/1.x_")) {
-                strncpy(respcode, (part + strlen("HTTP/1.x_")), 3);
-                respcode[3] = '\0';
-            }
-            else {
-                strcpy(respcode, "500");
-            }
-
-            if (respcode[0] != '2') {
-                err_response++;
-                if (verbosity >= 2)
-                    printf("WARNING: Response code not 2xx (%s)\n", respcode);
-            }
-            else if (verbosity >= 3) {
-                printf("LOG: Response code = %s\n", respcode);
-            }
-            c->gotheader = 1;
-            *s = 0;     /* terminate at end of header */
-            if (keepalive &&
-            (strstr(c->cbuff, "Keep-Alive")
-             || strstr(c->cbuff, "keep-alive"))) {  /* for benefit of MSIIS */
-                char *cl;
-                cl = strstr(c->cbuff, "Content-Length:");
-                /* handle NCSA, which sends Content-length: */
-                if (!cl)
-                    cl = strstr(c->cbuff, "Content-length:");
-                if (cl) {
-                    c->keepalive = 1;
-                    /* response to HEAD doesn't have entity body */
-                    if (c->cur_req_idx == 0)
-                        c->length[c->url_idx - 1] = posting >= 0 ? atoi(cl + 16) : 0;
-                }
-                /* The response may not have a Content-Length header */
-                if (!cl) {
-                    c->keepalive = 1;
-                    if (c->cur_req_idx == 0)
-                        c->length[c->url_idx - 1] = 0; 
+            // doclen = c->bread;
+            if (c->url_idx == ROWS && done < concurrency) {
+                c->etime[c->cur_req_idx++] = apr_time_now();
+                if (c->cur_req_idx == req_num){
+                    struct data *s = &stats[done++];
+                    doneka++;
+                    c->done      = apr_time_now();
+                    s->starttime = c->start;
+                    s->ctime     = c->ctime;
+                    s->time      = ap_max(0, c->done - c->ftime);
+                    s->waittime  = c->waittime;
+                }else
+                    c->url_idx = 0;
+                if (heartbeatres && !(done % heartbeatres)) {
+                    fprintf(stderr, "Completed %d requests\n", done);
+                    fflush(stderr);
                 }
             }
-            c->bread += c->cbx - (s + l - c->cbuff) + r - tocopy;
-            totalbread += c->bread;
+            c->keepalive = 0;
+            // c->length = 0;
+            c->gotheader = 0;
+            c->cbx = 0;
+            // printf("c->waittime=%ld\n", c->waittime);
+            c->read = c->bread = 0;
+            // todo printf("mylog, c->read=%lu, totalbread=%lu, c->url_idx=%d, END\n", c->read, totalbread, c->url_idx);
+            /* zero connect time with keep-alive */
+            // c->start = c->connect = lasttime = apr_time_now();
+            // printf("c->url_idx=%d, done=%d, req_num=%d, c->cur_req_idx=%d\n", c->url_idx, done, req_num, c->cur_req_idx);
+            lasttime = apr_time_now();
+            write_request(c);
         }
-        // todo printf("mylog, c->length=%lu, END\n", c->length);
-    }
-    else {
-        /* outside header, everything we have read is entity body */
-        c->bread += r;
-        totalbread += r;
-    }
-    
-    if (c->keepalive && (c->bread >= c->length[c->url_idx - 1])) {
-        /* finished a keep-alive connection */
-        // printf("mylog, finished a keep-alive connection, c->bread=%lu, c->length=%lu, c->url_idx=%d, c->cur_req_idx = %d, req_num=%d, c->bread=%lu, END\n", c->bread, c->length, c->url_idx, c->cur_req_idx, req_num, c->bread);
-        good++;
-        /* save out time */
-        // if (good == 1) {
-        //     /* first time here */
-        //     doclen = c->bread;
-        // }
-        // else if (c->bread != doclen) {
-        //     bad++;
-        //     err_length++;
-        // }
-        if (c->bread != c->length[c->url_idx - 1]){
-            bad++;
-            err_length++;
-        }
-        // doclen = c->bread;
-        if (c->url_idx == ROWS && done < concurrency) {
-            c->etime[c->cur_req_idx++] = apr_time_now();
-            if (c->cur_req_idx == req_num){
-                struct data *s = &stats[done++];
-                doneka++;
-                c->done      = apr_time_now();
-                s->starttime = c->start;
-                s->ctime     = c->ctime;
-                s->time      = ap_max(0, c->done - c->ftime);
-                s->waittime  = c->waittime;
-            }else
-                c->url_idx = 0;
-            if (heartbeatres && !(done % heartbeatres)) {
-                fprintf(stderr, "Completed %d requests\n", done);
-                fflush(stderr);
-            }
-        }
-        c->keepalive = 0;
-        // c->length = 0;
-        c->gotheader = 0;
-        c->cbx = 0;
-        // printf("c->waittime=%ld\n", c->waittime);
-        c->read = c->bread = 0;
-        // todo printf("mylog, c->read=%lu, totalbread=%lu, c->url_idx=%d, END\n", c->read, totalbread, c->url_idx);
-        /* zero connect time with keep-alive */
-        // c->start = c->connect = lasttime = apr_time_now();
-        // printf("c->url_idx=%d, done=%d, req_num=%d, c->cur_req_idx=%d\n", c->url_idx, done, req_num, c->cur_req_idx);
-        lasttime = apr_time_now();
-        write_request(c);
     }
 }
 
@@ -1894,18 +1909,18 @@ void *poll_thread(){
             }
 #endif
 
-            /**
-                * Notes: APR_POLLHUP is set after FIN is received on some
-                * systems, so treat that like APR_POLLIN so that we try to read
-                * again.
-                *
-                * Some systems return APR_POLLERR with APR_POLLHUP.  We need to
-                * call read_connection() for APR_POLLHUP, so check for
-                * APR_POLLHUP first so that a closed connection isn't treated
-                * like an I/O error.  If it is, we never figure out that the
-                * connection is done and we loop here endlessly calling
-                * apr_poll().
-                */
+           /**
+            * Notes: APR_POLLHUP is set after FIN is received on some
+            * systems, so treat that like APR_POLLIN so that we try to read
+            * again.
+            *
+            * Some systems return APR_POLLERR with APR_POLLHUP.  We need to
+            * call read_connection() for APR_POLLHUP, so check for
+            * APR_POLLHUP first so that a closed connection isn't treated
+            * like an I/O error.  If it is, we never figure out that the
+            * connection is done and we loop here endlessly calling
+            * apr_poll().
+            */
             if ((ep_events & EPOLLIN) || (ep_events & EPOLLPRI) || (ep_events & EPOLLHUP)) {
                 read_connection(c); 
             }
@@ -1914,10 +1929,10 @@ void *poll_thread(){
                 bad++;
                 err_except++;
                 /* avoid apr_poll/EINPROGRESS loop on HP-UX, let recv discover ECONNREFUSED */
-                if (c->state == STATE_CONNECTING) { 
+                if (c->state == STATE_CONNECTING) {
                     read_connection(c);     //!!??
                 }
-                else { 
+                else {
                     start_connect(c);       //!!??
                 }
                 continue;
@@ -2092,7 +2107,8 @@ static void test(void)
 
     stats = calloc(concurrency, sizeof(struct data));
 
-    epoll_size = concurrency + 1;
+    epoll_size = concurrency;
+    printf("start nts_raw_epoll_create...\n");
     epoll_fd = nts_raw_epoll_create(epoll_size);
     if (epoll_fd < 0) {
         apr_err("nts_raw_epoll_create failed", epoll_fd);
@@ -2102,11 +2118,11 @@ static void test(void)
     conn_ht = apr_hash_make(cntxt);
 
 
-    //!!??
-    if ((status = apr_pollset_create(&readbits, concurrency, cntxt,
-                                     APR_POLLSET_NOCOPY)) != APR_SUCCESS) {
-        apr_err("apr_pollset_create failed", status);
-    }
+    //!!
+    // if ((status = apr_pollset_create(&readbits, concurrency, cntxt,
+    //                                  APR_POLLSET_NOCOPY)) != APR_SUCCESS) {
+    //     apr_err("apr_pollset_create failed", status);
+    // }
 
     /* add default headers if necessary */
     if (!opt_host) {

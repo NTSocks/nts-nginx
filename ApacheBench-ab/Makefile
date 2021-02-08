@@ -10,12 +10,12 @@ all: ab
 
 ab: ab.c ap_release.h
 	gcc ab.c ap_release.h -o ab -I./apr/aprutil-build/include/apr-1/ -I./apr/apr-build/include/apr-1/ \
-				-I./nts/include/ -I/usr/local/include/ -L./apr/apr-build/lib/ -L./apr/aprutil-build/lib/ \
-				-L./nts/lib/ -L/usr/local/lib/ -static -lapr-1 -laprutil-1 -lntsverbs -Wl,-Bdynamic -lm -lc -lrt -lpthread -lfdu-utils -D_REENTRANT -D_GNU_SOURCE -D_LARGEFILE64_SOURCE
+				-I/usr/local/include/ -L./apr/apr-build/lib/ -L./apr/aprutil-build/lib/ \
+				-L/usr/local/lib/ -static -lapr-1 -laprutil-1 -lntsverbs -Wl,-Bdynamic -lm -lc -lrt -lpthread -lfdu-utils -D_REENTRANT -D_GNU_SOURCE -D_LARGEFILE64_SOURCE
 #	gcc ab.c ap_release.h -o ab -I./apr/aprutil-build/include/apr-1/ -I./apr/apr-build/include/apr-1/ -L./apr/apr-build/lib/ -L./apr/aprutil-build/lib/ -lapr-1 -laprutil-1 -lm  -lpthread -D_REENTRANT -D_GNU_SOURCE -D_LARGEFILE64_SOURCE
 
 
 
 clean:
 #	make -C ./apr/ clean
-	rm ab
+	rm -rf ab
