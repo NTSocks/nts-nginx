@@ -4472,7 +4472,7 @@ ngx_tcp_connect(ngx_resolver_connection_t *rec)
 #if (NGX_USE_NTS)
     // for nts
     s = nts_ngx_socket(rec->sockaddr->sa_family, SOCK_STREAM, 0);
-#elif
+#else
     s = ngx_socket(rec->sockaddr->sa_family, SOCK_STREAM, 0);
 #endif
 
