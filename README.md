@@ -72,13 +72,75 @@ cd ./nginx-nts/nts-nginx
 
 #### Run nts-nginx
 
-```sh
-# cd [nts-nginx installation path], like  ~/nts-nginx/local/nginx
-cd  ~/nts-nginx/local/nginx
+- Enter nginx root path: 
+    ```sh
+    # cd [nts-nginx installation path], like  ~/nts-nginx/local/nginx
+    cd  ~/nts-nginx/local/nginx
+    ```
 
-# modify corresponding conf/nginx.conf, please refer to /home/ntb-server2/nginx-nts/local/nginx/conf/nginx.conf
-./sbin/nginx
-```
+- Set nginx config file `conf/nginx.conf` as the following, (e.g., we take `10.176.22.211:80` as nginx server):
+
+    ```sh
+    #user  nobody;
+    worker_processes  0;
+
+    #error_log  logs/error.log;
+    #error_log  logs/error.log  notice;
+    error_log  logs/error.log  debug;
+
+    #pid        logs/nginx.pid;
+    daemon off;
+    master_process off;
+
+    events {
+        worker_connections  1024;
+    }
+
+
+    http {
+        include       mime.types;
+        default_type  application/octet-stream;
+
+        sendfile        on;
+
+        keepalive_timeout  65;
+
+        server {
+            listen       10.176.22.211:80;
+            server_name  10.176.22.211;
+
+            location / {
+                root   html;
+                index  index.html index.htm;
+            }
+
+
+            # redirect server error pages to the static page /50x.html
+            #
+            error_page   500 502 503 504  /50x.html;
+            location = /50x.html {
+                root   html;
+            }
+
+        }
+
+    }
+    ```
+
+- Copy 360° video slide files into `./html/VOD4K/` directory:
+    ```sh
+    mkdir -p ./html/VOD4K
+
+    # assume Video slides files is stored in `~/nginx-nts/local/nginx/html/VOD4K`
+    cp ~/nginx-nts/local/nginx/html/VOD4K/* ./html/VOD4K/
+    ```
+
+- Startup nginx daemon:
+
+    ```sh
+    # modify corresponding conf/nginx.conf, please refer to /home/ntb-server2/nginx-nts/local/nginx/conf/nginx.conf
+    ./sbin/nginx
+    ```
 
 
 ## NTSocks-enabled ApacheBench-tool
