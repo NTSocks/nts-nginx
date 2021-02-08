@@ -382,9 +382,11 @@ main(int argc, char *const *argv)
     ngx_use_stderr = 0;
 
     if (ngx_process == NGX_PROCESS_SINGLE) {
+        printf("ngx_single_process_cycle start \n");
         ngx_single_process_cycle(cycle);
 
     } else {
+        printf("ngx_master_process_cycle start \n");
         ngx_master_process_cycle(cycle);
     }
 

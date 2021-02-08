@@ -31,9 +31,15 @@ ngx_unix_send(ngx_connection_t *c, u_char *buf, size_t size)
 #endif
 
     for ( ;; ) {
+#if (NGX_USE_NTS)
         // for nts
-        // n = send(c->fd, buf, size, 0);
         n = nts_send(c->fd, buf, size, 0);
+        if (n < 0) {
+#endif
+            n = send(c->fd, buf, size, 0);
+#if (NGX_USE_NTS)
+        }
+#endif
 
         ngx_log_debug3(NGX_LOG_DEBUG_EVENT, c->log, 0,
                        "send: fd:%d %z of %uz", c->fd, n, size);

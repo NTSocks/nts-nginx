@@ -62,20 +62,38 @@ ngx_event_accept(ngx_event_t *ev)
 
 #if (NGX_HAVE_ACCEPT4)
         if (use_accept4) {
+#if (NGX_USE_NTS)
             // for nts
-            // s = accept4(lc->fd, &sa.sockaddr, &socklen, SOCK_NONBLOCK);
             s = nts_accept4(lc->fd, &sa.sockaddr, &socklen, SOCK_NONBLOCK);
+            if (s < 0) {
+#endif
+                s = accept4(lc->fd, &sa.sockaddr, &socklen, SOCK_NONBLOCK);
+#if (NGX_USE_NTS)
+            }
+#endif
         } else {
+#if (NGX_USE_NTS)
             // for nts
-            // s = accept(lc->fd, &sa.sockaddr, &socklen);
             s = nts_accept(lc->fd, &sa.sockaddr, &socklen);
+            if (s < 0) {
+#endif
+                s = accept(lc->fd, &sa.sockaddr, &socklen);
+#if (NGX_USE_NTS)
+            }
+#endif
         }
 #else
+#if (NGX_USE_NTS)
         // for nts
-        // s = accept(lc->fd, &sa.sockaddr, &socklen);
         s = nts_accept(lc->fd, &sa.sockaddr, &socklen);
+        if (s < 0) {
 #endif
-
+            s = accept(lc->fd, &sa.sockaddr, &socklen);
+#if (NGX_USE_NTS)
+        }
+#endif
+#endif
+        printf("accepted sockfd = %d\n", s);
         if (s == (ngx_socket_t) -1) {
             err = ngx_socket_errno;
 
@@ -148,6 +166,7 @@ ngx_event_accept(ngx_event_t *ev)
                               - ngx_cycle->free_connection_n;
 
         c = ngx_get_connection(s, ev->log);
+        printf("ngx_get_connection %p\n", c);
 
         if (c == NULL) {
             if (ngx_close_socket(s) == -1) {
@@ -165,6 +184,7 @@ ngx_event_accept(ngx_event_t *ev)
 #endif
 
         c->pool = ngx_create_pool(ls->pool_size, ev->log);
+        printf("ngx_create_pool %p\n", c->pool);
         if (c->pool == NULL) {
             ngx_close_accepted_connection(c);
             return;
@@ -175,13 +195,20 @@ ngx_event_accept(ngx_event_t *ev)
         }
 
         c->sockaddr = ngx_palloc(c->pool, socklen);
+        printf("ngx_palloc: %p\n", c->sockaddr);
         if (c->sockaddr == NULL) {
             ngx_close_accepted_connection(c);
             return;
         }
 
-        ngx_memcpy(c->sockaddr, &sa, socklen);
+        struct sockaddr_in *skaddr = (struct sockaddr_in*) &sa.sockaddr;
 
+        ngx_memcpy(c->sockaddr, &sa, socklen);
+        int tmp_port = ntohs(skaddr->sin_port);
+        struct in_addr tmp_in = skaddr->sin_addr;
+        char tmpaddr_str[16];
+        inet_ntop(AF_INET, &tmp_in, tmpaddr_str, sizeof(tmpaddr_str));
+        printf("ip:port %s : %d\n", tmpaddr_str, tmp_port);
         log = ngx_palloc(c->pool, sizeof(ngx_log_t));
         if (log == NULL) {
             ngx_close_accepted_connection(c);
@@ -189,10 +216,12 @@ ngx_event_accept(ngx_event_t *ev)
         }
 
         /* set a blocking mode for iocp and non-blocking mode for others */
-
+        printf("set a blocking mode for iocp and non-blocking mode for others \n");
         if (ngx_inherited_nonblocking) {
             if (ngx_event_flags & NGX_USE_IOCP_EVENT) {
+                printf("ngx_blocking\n");
                 if (ngx_blocking(s) == -1) {
+                    printf("ngx_blocking failed\n");
                     ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_socket_errno,
                                   ngx_blocking_n " failed");
                     ngx_close_accepted_connection(c);
@@ -202,7 +231,9 @@ ngx_event_accept(ngx_event_t *ev)
 
         } else {
             if (!(ngx_event_flags & NGX_USE_IOCP_EVENT)) {
+                printf("ngx_nonblocking\n");
                 if (ngx_nonblocking(s) == -1) {
+                    printf("ngx_nonblocking failed\n");
                     ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_socket_errno,
                                   ngx_nonblocking_n " failed");
                     ngx_close_accepted_connection(c);
@@ -264,7 +295,7 @@ ngx_event_accept(ngx_event_t *ev)
          *           - ngx_atomic_fetch_add()
          *             or protection by critical section or light mutex
          */
-
+        printf("ngx_atomic_fetch_add\n");
         c->number = ngx_atomic_fetch_add(ngx_connection_counter, 1);
 
 #if (NGX_STAT_STUB)
@@ -272,15 +303,19 @@ ngx_event_accept(ngx_event_t *ev)
 #endif
 
         if (ls->addr_ntop) {
+            printf("ngx_pnalloc with %ld\n", ls->addr_text_max_len);
             c->addr_text.data = ngx_pnalloc(c->pool, ls->addr_text_max_len);
             if (c->addr_text.data == NULL) {
                 ngx_close_accepted_connection(c);
                 return;
             }
 
+            struct sockaddr_in   *sin = (struct sockaddr_in *) c->sockaddr;
+            printf("ngx_sock_ntop : %s\n", (u_char *) &sin->sin_addr);
             c->addr_text.len = ngx_sock_ntop(c->sockaddr, c->socklen,
                                              c->addr_text.data,
                                              ls->addr_text_max_len, 0);
+            printf("c->addr_text.len = %ld \n", c->addr_text.len);
             if (c->addr_text.len == 0) {
                 ngx_close_accepted_connection(c);
                 return;
@@ -291,9 +326,10 @@ ngx_event_accept(ngx_event_t *ev)
         {
         ngx_str_t  addr;
         u_char     text[NGX_SOCKADDR_STRLEN];
-
+        printf("ngx_debug_accepted_connection\n");
         ngx_debug_accepted_connection(ecf, c);
 
+        printf("log->log_level & NGX_LOG_DEBUG_EVENT \n");
         if (log->log_level & NGX_LOG_DEBUG_EVENT) {
             addr.data = text;
             addr.len = ngx_sock_ntop(c->sockaddr, c->socklen, text,
@@ -305,7 +341,7 @@ ngx_event_accept(ngx_event_t *ev)
 
         }
 #endif
-
+        printf("ngx_add_conn \n");
         if (ngx_add_conn && (ngx_event_flags & NGX_USE_EPOLL_EVENT) == 0) {
             if (ngx_add_conn(c) == NGX_ERROR) {
                 ngx_close_accepted_connection(c);
@@ -316,11 +352,14 @@ ngx_event_accept(ngx_event_t *ev)
         log->data = NULL;
         log->handler = NULL;
 
+        printf("ls->handler\n");
         ls->handler(c);
 
         if (ngx_event_flags & NGX_USE_KQUEUE_EVENT) {
             ev->available--;
         }
+
+        printf("accepted socket connection pass with ev->available = %d\n", ev->available);
 
     } while (ev->available);
 }
@@ -410,9 +449,16 @@ ngx_event_recvmsg(ngx_event_t *ev)
 
 #endif
 
+#if (NGX_USE_NTS)
         // for nts
-        // n = recvmsg(lc->fd, &msg, 0);
         n = nts_recvmsg(lc->fd, &msg, 0);
+        if (n < 0) {
+#endif
+            n = recvmsg(lc->fd, &msg, 0);
+#if (NGX_USE_NTS)
+        }
+#endif
+
 
         if (n == -1) {
             err = ngx_socket_errno;

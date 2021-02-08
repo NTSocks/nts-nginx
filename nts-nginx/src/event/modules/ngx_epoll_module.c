@@ -48,28 +48,28 @@ struct epoll_event {
 };
 
 
-int epoll_create(int size);
+// int epoll_create(int size);
 
-int epoll_create(int size)
-{
-    return -1;
-}
-
-
-int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
-
-int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
-{
-    return -1;
-}
+// int epoll_create(int size)
+// {
+//     return -1;
+// }
 
 
-int epoll_wait(int epfd, struct epoll_event *events, int nevents, int timeout);
+// int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
 
-int epoll_wait(int epfd, struct epoll_event *events, int nevents, int timeout)
-{
-    return -1;
-}
+// int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
+// {
+//     return -1;
+// }
+
+
+// int epoll_wait(int epfd, struct epoll_event *events, int nevents, int timeout);
+
+// int epoll_wait(int epfd, struct epoll_event *events, int nevents, int timeout)
+// {
+//     return -1;
+// }
 
 #if (NGX_HAVE_EVENTFD)
 #define SYS_eventfd       323
@@ -133,6 +133,13 @@ static char *ngx_epoll_init_conf(ngx_cycle_t *cycle, void *conf);
 static int                  ep = -1;
 static struct epoll_event  *event_list;
 static ngx_uint_t           nevents;
+
+#if (NGX_USE_NTS)
+// for nts
+static int                  nts_ep = -1;
+static struct epoll_event  *nts_event_list;
+static ngx_uint_t           nts_nevents;
+#endif
 
 #if (NGX_HAVE_EVENTFD)
 static int                  notify_fd = -1;
@@ -292,9 +299,19 @@ ngx_epoll_aio_init(ngx_cycle_t *cycle, ngx_epoll_conf_t *epcf)
     ee.events = EPOLLIN|EPOLLET;
     ee.data.ptr = &ngx_eventfd_conn;
 
-    // for nts
+    int retval = -1;
+// #if (NGX_USE_NTS)
+//     // for nts
+//     retval = nts_raw_epoll_ctl(nts_ep, EPOLL_CTL_ADD, ngx_eventfd, &ee);
+//     if (retval != 0) {
+// #endif
+        retval = epoll_ctl(ep, EPOLL_CTL_ADD, ngx_eventfd, &ee);
+// #if (NGX_USE_NTS)
+//     }
+// #endif
+
     // if (epoll_ctl(ep, EPOLL_CTL_ADD, ngx_eventfd, &ee) != -1) {
-    if (nts_raw_epoll_ctl(ep, EPOLL_CTL_ADD, ngx_eventfd, &ee) != -1) {
+    if (retval != -1) { 
         return;
     }
 
@@ -329,10 +346,18 @@ ngx_epoll_init(ngx_cycle_t *cycle, ngx_msec_t timer)
     epcf = ngx_event_get_conf(cycle->conf_ctx, ngx_epoll_module);
 
     if (ep == -1) {
-        // for nts
-        // ep = epoll_create(cycle->connection_n / 2);
-        ep = nts_raw_epoll_create(cycle->connection_n / 2);
 
+#if (NGX_USE_NTS)
+        // for nts
+        nts_ep = nts_raw_epoll_create(cycle->connection_n / 2);
+        if (nts_ep == -1) {
+            ngx_log_error(NGX_LOG_EMERG, cycle->log, ngx_errno,
+                          "nts_raw_epoll_create() failed");
+            return NGX_ERROR;
+        }
+#endif
+
+        ep = epoll_create(cycle->connection_n / 2);
         if (ep == -1) {
             ngx_log_error(NGX_LOG_EMERG, cycle->log, ngx_errno,
                           "epoll_create() failed");
@@ -365,6 +390,21 @@ ngx_epoll_init(ngx_cycle_t *cycle, ngx_msec_t timer)
             return NGX_ERROR;
         }
     }
+
+#if (NGX_USE_NTS)
+    if (nts_nevents < epcf->events) {
+        if (nts_event_list) {
+            ngx_free(nts_event_list);
+        }
+
+        nts_event_list = ngx_alloc(sizeof(struct epoll_event) * epcf->events,
+                               cycle->log);
+        if (nts_event_list == NULL) {
+            return NGX_ERROR;
+        }
+    }
+    nts_nevents = epcf->events;
+#endif
 
     nevents = epcf->events;
 
@@ -416,9 +456,18 @@ ngx_epoll_notify_init(ngx_log_t *log)
     ee.events = EPOLLIN|EPOLLET;
     ee.data.ptr = &notify_conn;
 
-    // for nts
-    // if (epoll_ctl(ep, EPOLL_CTL_ADD, notify_fd, &ee) == -1) {
-    if (nts_raw_epoll_ctl(ep, EPOLL_CTL_ADD, notify_fd, &ee) == -1) {
+    int retval = -1;
+// #if (NGX_USE_NTS)
+//     // for nts
+//     retval = nts_raw_epoll_ctl(nts_ep, EPOLL_CTL_ADD, notify_fd, &ee);
+//     if (retval != 0) {
+// #endif
+        retval = epoll_ctl(ep, EPOLL_CTL_ADD, notify_fd, &ee);
+// #if (NGX_USE_NTS)
+//     }
+// #endif
+
+    if (retval == -1) {
         ngx_log_error(NGX_LOG_EMERG, log, ngx_errno,
                       "epoll_ctl(EPOLL_CTL_ADD, eventfd) failed");
 
@@ -481,9 +530,18 @@ ngx_epoll_test_rdhup(ngx_cycle_t *cycle)
 
     ee.events = EPOLLET|EPOLLIN|EPOLLRDHUP;
 
-    // for nts
-    // if (epoll_ctl(ep, EPOLL_CTL_ADD, s[0], &ee) == -1) {
-    if (nts_raw_epoll_ctl(ep, EPOLL_CTL_ADD, s[0], &ee) == -1) {
+    int retval = -1;
+// #if (NGX_USE_NTS)
+//     // for nts
+//     retval = nts_raw_epoll_ctl(nts_ep, EPOLL_CTL_ADD, s[0], &ee);
+//     if (retval != 0) {
+// #endif
+        retval = epoll_ctl(ep, EPOLL_CTL_ADD, s[0], &ee);
+// #if (NGX_USE_NTS)
+//     }
+// // #endif
+
+    if (retval == -1) {
         ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                       "epoll_ctl() failed");
         goto failed;
@@ -498,9 +556,15 @@ ngx_epoll_test_rdhup(ngx_cycle_t *cycle)
 
     s[1] = -1;
 
-    // for nts
-    // events = epoll_wait(ep, &ee, 1, 5000);
-    events = nts_raw_epoll_wait(ep, &ee, 1, 5000);
+// #if (NGX_USE_NTS)
+//     // for nts
+//     events = nts_raw_epoll_wait(nts_ep, &ee, 1, 5000);
+//     if (events < 0) {
+// #endif
+        events = epoll_wait(ep, &ee, 1, 5000);
+// #if (NGX_USE_NTS)
+//     }
+// #endif
 
     if (events == -1) {
         ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
@@ -539,9 +603,18 @@ failed:
 static void
 ngx_epoll_done(ngx_cycle_t *cycle)
 {
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // if (close(ep) == -1) {
-    if (nts_close(ep) == -1) {
+    retval = nts_close(ep);
+    if (retval < 0) {
+#endif
+        retval = close(ep);
+#if (NGX_USE_NTS)
+    }
+#endif
+
+    if (retval == -1) {
         ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                       "epoll close() failed");
     }
@@ -584,9 +657,17 @@ ngx_epoll_done(ngx_cycle_t *cycle)
 
     event_list = NULL;
     nevents = 0;
+
+#if (NGX_USE_NTS)
+    ngx_free(nts_event_list);
+
+    nts_event_list = NULL;
+    nts_nevents = 0;
+#endif
+
 }
 
-
+// specifically for normal socket fd
 static ngx_int_t
 ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 {
@@ -636,11 +717,20 @@ ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
                    "epoll add event: fd:%d op:%d ev:%08XD",
                    c->fd, op, ee.events);
 
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
-    if (nts_raw_epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    retval = nts_raw_epoll_ctl(nts_ep, op, c->fd, &ee);
+    if (retval < 0) {
+#endif
+        retval = epoll_ctl(ep, op, c->fd, &ee);
+#if (NGX_USE_NTS)
+    }
+#endif
+
+    if (retval == -1) {
         ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_errno,
-                      "epoll_ctl(%d, %d) failed", op, c->fd);
+                      "nts_raw_epoll_ctl(%d, %d) failed", op, c->fd);
         return NGX_ERROR;
     }
 
@@ -699,11 +789,20 @@ ngx_epoll_del_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
                    "epoll del event: fd:%d op:%d ev:%08XD",
                    c->fd, op, ee.events);
 
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
-    if (nts_raw_epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    retval = nts_raw_epoll_ctl(nts_ep, op, c->fd, &ee);
+    if (retval < 0) {
+#endif
+        retval = epoll_ctl(ep, op, c->fd, &ee);
+#if (NGX_USE_NTS)
+    }
+#endif
+
+    if (retval == -1) {
         ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_errno,
-                      "epoll_ctl(%d, %d) failed", op, c->fd);
+                      "nts_raw_epoll_ctl(%d, %d) failed", op, c->fd);
         return NGX_ERROR;
     }
 
@@ -724,11 +823,20 @@ ngx_epoll_add_connection(ngx_connection_t *c)
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, c->log, 0,
                    "epoll add connection: fd:%d ev:%08XD", c->fd, ee.events);
 
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // if (epoll_ctl(ep, EPOLL_CTL_ADD, c->fd, &ee) == -1) {
-    if (nts_raw_epoll_ctl(ep, EPOLL_CTL_ADD, c->fd, &ee) == -1) {
+    retval = nts_raw_epoll_ctl(nts_ep, EPOLL_CTL_ADD, c->fd, &ee);
+    if (retval != 0) {
+#endif
+        retval = epoll_ctl(ep, EPOLL_CTL_ADD, c->fd, &ee);
+#if (NGX_USE_NTS)
+    }
+#endif
+    
+    if (retval == -1) {
         ngx_log_error(NGX_LOG_ALERT, c->log, ngx_errno,
-                      "epoll_ctl(EPOLL_CTL_ADD, %d) failed", c->fd);
+                      "nts_raw_epoll_ctl(EPOLL_CTL_ADD, %d) failed", c->fd);
         return NGX_ERROR;
     }
 
@@ -764,11 +872,20 @@ ngx_epoll_del_connection(ngx_connection_t *c, ngx_uint_t flags)
     ee.events = 0;
     ee.data.ptr = NULL;
 
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
-    if (nts_raw_epoll_ctl(ep, op, c->fd, &ee) == -1) {
+    retval = nts_raw_epoll_ctl(nts_ep, op, c->fd, &ee);
+    if (retval < 0) {
+#endif
+        retval = epoll_ctl(ep, op, c->fd, &ee);
+#if (NGX_USE_NTS)
+    }
+#endif
+
+    if (retval == -1) {
         ngx_log_error(NGX_LOG_ALERT, c->log, ngx_errno,
-                      "epoll_ctl(%d, %d) failed", op, c->fd);
+                      "nts_raw_epoll_ctl(%d, %d) failed", op, c->fd);
         return NGX_ERROR;
     }
 
@@ -811,15 +928,25 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
     ngx_event_t       *rev, *wev;
     ngx_queue_t       *queue;
     ngx_connection_t  *c;
+    struct epoll_event * tmp_event_list;
 
     /* NGX_TIMER_INFINITE == INFTIM */
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                    "epoll timer: %M", timer);
 
+#if (NGX_USE_NTS)
     // for nts
-    // events = epoll_wait(ep, event_list, (int) nevents, timer);
-    events = nts_raw_epoll_wait(ep, event_list, (int) nevents, timer);
+    events = nts_raw_epoll_wait(nts_ep, nts_event_list, (int) nts_nevents, timer);
+    if (events <= 0) {
+#endif
+        events = epoll_wait(ep, event_list, (int) nevents, timer);
+        tmp_event_list = event_list;
+#if (NGX_USE_NTS) 
+    } else {
+        tmp_event_list = nts_event_list;
+    }
+#endif
 
     err = (events == -1) ? ngx_errno : 0;
 
@@ -856,7 +983,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
     }
 
     for (i = 0; i < events; i++) {
-        c = event_list[i].data.ptr;
+        c = tmp_event_list[i].data.ptr;
 
         instance = (uintptr_t) c & 1;
         c = (ngx_connection_t *) ((uintptr_t) c & (uintptr_t) ~1);
@@ -875,11 +1002,11 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             continue;
         }
 
-        revents = event_list[i].events;
+        revents = tmp_event_list[i].events;
 
         ngx_log_debug3(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                        "epoll: fd:%d ev:%04XD d:%p",
-                       c->fd, revents, event_list[i].data.ptr);
+                       c->fd, revents, tmp_event_list[i].data.ptr);
 
         if (revents & (EPOLLERR|EPOLLHUP)) {
             ngx_log_debug2(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
@@ -915,12 +1042,14 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             rev->ready = 1;
 
             if (flags & NGX_POST_EVENTS) {
+                printf("flags & NGX_POST_EVENTS\n");
                 queue = rev->accept ? &ngx_posted_accept_events
                                     : &ngx_posted_events;
 
                 ngx_post_event(rev, queue);
 
             } else {
+                printf("rev->handler(rev)\n");
                 rev->handler(rev);
             }
         }
@@ -954,6 +1083,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             }
         }
     }
+
 
     return NGX_OK;
 }

@@ -885,11 +885,20 @@ ngx_send_lowat(ngx_connection_t *c, size_t lowat)
 
     sndlowat = (int) lowat;
 
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // if (setsockopt(c->fd, SOL_SOCKET, SO_SNDLOWAT,
-    if (nts_setsockopt(c->fd, SOL_SOCKET, SO_SNDLOWAT,
-                   (const void *) &sndlowat, sizeof(int))
-        == -1)
+    retval = nts_setsockopt(c->fd, SOL_SOCKET, SO_SNDLOWAT,
+                   (const void *) &sndlowat, sizeof(int));
+    if (retval != 0) {
+#endif
+        retval = setsockopt(c->fd, SOL_SOCKET, SO_SNDLOWAT,
+                   (const void *) &sndlowat, sizeof(int));
+#if (NGX_USE_NTS)
+    }
+#endif
+
+    if (retval == -1)
     {
         ngx_connection_error(c, ngx_socket_errno,
                              "setsockopt(SO_SNDLOWAT) failed");

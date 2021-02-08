@@ -102,10 +102,19 @@ ngx_linux_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
                 tcp_nodelay = 0;
 
+                int retval = -1;
+#if (NGX_USE_NTS)
                 // for nts
-                // if (setsockopt(c->fd, IPPROTO_TCP, TCP_NODELAY,
-                if (nts_setsockopt(c->fd, IPPROTO_TCP, TCP_NODELAY,
-                               (const void *) &tcp_nodelay, sizeof(int)) == -1)
+                retval = nts_setsockopt(c->fd, IPPROTO_TCP, TCP_NODELAY,
+                               (const void *) &tcp_nodelay, sizeof(int));
+                if (retval != 0) {
+#endif
+                    retval = setsockopt(c->fd, IPPROTO_TCP, TCP_NODELAY,
+                               (const void *) &tcp_nodelay, sizeof(int));
+#if (NGX_USE_NTS)
+                }
+#endif
+                if (retval == -1)
                 {
                     err = ngx_socket_errno;
 
@@ -258,9 +267,15 @@ eintr:
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, c->log, 0,
                    "sendfile: @%O %uz", file->file_pos, size);
 
+#if (NGX_USE_NTS)
     // for nts
-    // n = sendfile(c->fd, file->file->fd, &offset, size);
     n = nts_sendfile(c->fd, file->file->fd, &offset, size);
+    if (n < 0) {
+#endif
+        n = sendfile(c->fd, file->file->fd, &offset, size);
+#if (NGX_USE_NTS)
+    }
+#endif
 
     if (n == -1) {
         err = ngx_errno;

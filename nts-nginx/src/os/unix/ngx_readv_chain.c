@@ -118,9 +118,15 @@ ngx_readv_chain(ngx_connection_t *c, ngx_chain_t *chain, off_t limit)
                    "readv: %ui, last:%uz", vec.nelts, iov->iov_len);
 
     do {
+#if (NGX_USE_NTS)
         // for nts
-        // n = readv(c->fd, (struct iovec *) vec.elts, vec.nelts);
         n = nts_readv(c->fd, (struct iovec *) vec.elts, vec.nelts);
+        if (n < 0) {
+#endif
+            n = readv(c->fd, (struct iovec *) vec.elts, vec.nelts);
+#if (NGX_USE_NTS)
+        }
+#endif
 
         if (n == 0) {
             rev->ready = 0;

@@ -1426,10 +1426,18 @@ ngx_stream_proxy_test_connect(ngx_connection_t *c)
          * BSDs and Linux return 0 and set a pending error in err
          * Solaris returns -1 and sets errno
          */
-        
-        // if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
-        if (nts_getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err), &len)
-            == -1)
+
+        int retval = -1;
+#if (NGX_USE_NTS)
+        // for nts
+        retval = nts_getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err), &len);
+        if (retval != 0) {
+#endif 
+            retval = getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len);
+#if (NGX_USE_NTS)
+        }
+#endif
+        if (retval == -1)
         {
             err = ngx_socket_errno;
         }

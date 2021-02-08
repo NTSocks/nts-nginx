@@ -8,6 +8,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_event.h>
+#include <stdio.h>
 
 
 ngx_os_io_t  ngx_io;
@@ -157,9 +158,19 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
         }
 
         ls[i].socklen = sizeof(ngx_sockaddr_t);
+
+        int retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockname(ls[i].fd, ls[i].sockaddr, &ls[i].socklen) == -1) {
-        if (nts_getsockname(ls[i].fd, ls[i].sockaddr, &ls[i].socklen) == -1) {
+        retval = nts_getsockname(ls[i].fd, ls[i].sockaddr, &ls[i].socklen);
+        if (retval < 0) {
+#endif
+            retval = getsockname(ls[i].fd, ls[i].sockaddr, &ls[i].socklen);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1) {
             ngx_log_error(NGX_LOG_CRIT, cycle->log, ngx_socket_errno,
                           "getsockname() of the inherited "
                           "socket #%d failed", ls[i].fd);
@@ -217,11 +228,20 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
 
         olen = sizeof(int);
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(ls[i].fd, SOL_SOCKET, SO_TYPE, (void *) &ls[i].type,
-        if (nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_TYPE, (void *) &ls[i].type,
-                       &olen)
-            == -1)
+        retval = nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_TYPE, (void *) &ls[i].type,
+                       &olen);
+        if (retval < 0) {
+#endif
+            retval = getsockopt(ls[i].fd, SOL_SOCKET, SO_TYPE, (void *) &ls[i].type,
+                            &olen);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1)
         {
             ngx_log_error(NGX_LOG_CRIT, cycle->log, ngx_socket_errno,
                           "getsockopt(SO_TYPE) %V failed", &ls[i].addr_text);
@@ -231,11 +251,20 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
 
         olen = sizeof(int);
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(ls[i].fd, SOL_SOCKET, SO_RCVBUF, (void *) &ls[i].rcvbuf,
-        if (nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_RCVBUF, (void *) &ls[i].rcvbuf,
-                       &olen)
-            == -1)
+        retval = nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_RCVBUF, (void *) &ls[i].rcvbuf,
+                       &olen);
+        if (retval < 0) {
+#endif
+            retval = getsockopt(ls[i].fd, SOL_SOCKET, SO_RCVBUF, (void *) &ls[i].rcvbuf,
+                       &olen);
+#if (NGX_USE_NTS)
+        }
+#endif
+        
+        if (retval == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                           "getsockopt(SO_RCVBUF) %V failed, ignored",
@@ -246,11 +275,20 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
 
         olen = sizeof(int);
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(ls[i].fd, SOL_SOCKET, SO_SNDBUF, (void *) &ls[i].sndbuf,
-        if (nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_SNDBUF, (void *) &ls[i].sndbuf,
-                       &olen)
-            == -1)
+        retval = nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_SNDBUF, (void *) &ls[i].sndbuf,
+                       &olen);
+        if (retval < 0) {
+#endif
+            retval = getsockopt(ls[i].fd, SOL_SOCKET, SO_SNDBUF, (void *) &ls[i].sndbuf,
+                       &olen);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                           "getsockopt(SO_SNDBUF) %V failed, ignored",
@@ -266,11 +304,20 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
 
         olen = sizeof(int);
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(ls[i].fd, SOL_SOCKET, SO_SETFIB,
-        if (nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_SETFIB,
-                       (void *) &ls[i].setfib, &olen)
-            == -1)
+        retval = nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_SETFIB,
+                       (void *) &ls[i].setfib, &olen);
+        if (retval < 0) {
+#endif
+            retval = getsockopt(ls[i].fd, SOL_SOCKET, SO_SETFIB,
+                       (void *) &ls[i].setfib, &olen);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                           "getsockopt(SO_SETFIB) %V failed, ignored",
@@ -287,11 +334,20 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
         reuseport = 0;
         olen = sizeof(int);
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(ls[i].fd, SOL_SOCKET, SO_REUSEPORT,
-        if (nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_REUSEPORT,
-                       (void *) &reuseport, &olen)
-            == -1)
+        retval = nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_REUSEPORT,
+                       (void *) &reuseport, &olen);
+        if (retval < 0) {
+#endif
+            retval = getsockopt(ls[i].fd, SOL_SOCKET, SO_REUSEPORT,
+                       (void *) &reuseport, &olen);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                           "getsockopt(SO_REUSEPORT) %V failed, ignored",
@@ -311,11 +367,20 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
 
         olen = sizeof(int);
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(ls[i].fd, IPPROTO_TCP, TCP_FASTOPEN,
-        if (nts_getsockopt(ls[i].fd, IPPROTO_TCP, TCP_FASTOPEN,
-                       (void *) &ls[i].fastopen, &olen)
-            == -1)
+        retval = nts_getsockopt(ls[i].fd, IPPROTO_TCP, TCP_FASTOPEN,
+                       (void *) &ls[i].fastopen, &olen);
+        if (retval < 0) {
+#endif
+            retval = getsockopt(ls[i].fd, IPPROTO_TCP, TCP_FASTOPEN,
+                       (void *) &ls[i].fastopen, &olen);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1)
         {
             err = ngx_socket_errno;
 
@@ -335,10 +400,18 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
         ngx_memzero(&af, sizeof(struct accept_filter_arg));
         olen = sizeof(struct accept_filter_arg);
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER, &af, &olen)
-        if (nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER, &af, &olen)
-            == -1)
+        retval = nts_getsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER, &af, &olen);
+        if (retval < 0) {
+#endif
+            retval = getsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER, &af, &olen);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1)
         {
             err = ngx_socket_errno;
 
@@ -370,10 +443,18 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
         timeout = 0;
         olen = sizeof(int);
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT, &timeout, &olen)
-        if (nts_getsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT, &timeout, &olen)
-            == -1)
+        retval = nts_getsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT, &timeout, &olen);
+        if (retval < 0) {
+#endif
+            retval = getsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT, &timeout, &olen);
+#if (NGX_USE_NTS)
+        }
+#endif
+        
+        if (retval == -1)
         {
             err = ngx_socket_errno;
 
@@ -442,11 +523,20 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
 
                 int  reuseport = 1;
 
+                int retval = -1;
+#if (NGX_USE_NTS)
                 // for nts
-                // if (setsockopt(ls[i].fd, SOL_SOCKET, SO_REUSEPORT,
-                if (nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_REUSEPORT,
-                               (const void *) &reuseport, sizeof(int))
-                    == -1)
+                retval = nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_REUSEPORT,
+                               (const void *) &reuseport, sizeof(int));
+                if (retval < 0) {
+#endif
+                    retval = setsockopt(ls[i].fd, SOL_SOCKET, SO_REUSEPORT,
+                               (const void *) &reuseport, sizeof(int));
+#if (NGX_USE_NTS)
+                }
+#endif
+
+                if (retval == -1)
                 {
                     ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                                   "setsockopt(SO_REUSEPORT) %V failed, ignored",
@@ -470,7 +560,18 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                 continue;
             }
 
-            s = ngx_socket(ls[i].sockaddr->sa_family, ls[i].type, 0);
+            printf("[ngx_open_listening_sockets] ls[i].type = %d \t vs. \t SOCK_STREAM = %d\n", ls[i].type, SOCK_STREAM);
+#if (NGX_USE_NTS)
+            // for nts
+            if (ls[i].type == SOCK_STREAM) {
+                s = nts_ngx_socket(ls[i].sockaddr->sa_family, ls[i].type, 0);  
+            } else {
+#endif
+                s = ngx_socket(ls[i].sockaddr->sa_family, ls[i].type, 0);
+#if (NGX_USE_NTS)
+            }
+#endif
+            
 
             if (s == (ngx_socket_t) -1) {
                 ngx_log_error(NGX_LOG_EMERG, log, ngx_socket_errno,
@@ -478,11 +579,20 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                 return NGX_ERROR;
             }
 
+            int retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
-            if (nts_setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
-                           (const void *) &reuseaddr, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+                           (const void *) &reuseaddr, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+                           (const void *) &reuseaddr, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_EMERG, log, ngx_socket_errno,
                               "setsockopt(SO_REUSEADDR) %V failed",
@@ -504,11 +614,20 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
 
                 reuseport = 1;
 
+                int retval = -1;
+#if (NGX_USE_NTS)
                 // for nts
-                // if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT,
-                if (nts_setsockopt(s, SOL_SOCKET, SO_REUSEPORT,
-                               (const void *) &reuseport, sizeof(int))
-                    == -1)
+                retval = nts_setsockopt(s, SOL_SOCKET, SO_REUSEPORT,
+                               (const void *) &reuseport, sizeof(int));
+                if (retval < 0) {
+#endif
+                    retval = setsockopt(s, SOL_SOCKET, SO_REUSEPORT,
+                               (const void *) &reuseport, sizeof(int));
+#if (NGX_USE_NTS)
+                }
+#endif
+
+                if (retval == -1)
                 {
                     ngx_log_error(NGX_LOG_EMERG, log, ngx_socket_errno,
                                   "setsockopt(SO_REUSEPORT) %V failed",
@@ -532,11 +651,20 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
 
                 ipv6only = ls[i].ipv6only;
 
+                int retval = -1;
+#if (NGX_USE_NTS)
                 // for nts
-                // if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
-                if (nts_setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
-                               (const void *) &ipv6only, sizeof(int))
-                    == -1)
+                retval = nts_setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
+                               (const void *) &ipv6only, sizeof(int));
+                if (retval < 0) {
+#endif
+                    retval = setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
+                               (const void *) &ipv6only, sizeof(int));
+#if (NGX_USE_NTS)
+                }
+#endif
+
+                if (retval == -1)
                 {
                     ngx_log_error(NGX_LOG_EMERG, log, ngx_socket_errno,
                                   "setsockopt(IPV6_V6ONLY) %V failed, ignored",
@@ -565,9 +693,18 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
             ngx_log_debug2(NGX_LOG_DEBUG_CORE, log, 0,
                            "bind() %V #%d ", &ls[i].addr_text, s);
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (bind(s, ls[i].sockaddr, ls[i].socklen) == -1) {
-            if (nts_bind(s, ls[i].sockaddr, ls[i].socklen) == -1) {
+            retval = nts_bind(s, ls[i].sockaddr, ls[i].socklen);
+            if (retval < 0) {
+#endif
+                retval = bind(s, ls[i].sockaddr, ls[i].socklen);
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1) {
                 err = ngx_socket_errno;
 
                 if (err != NGX_EADDRINUSE || !ngx_test_config) {
@@ -620,9 +757,20 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                 continue;
             }
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (listen(s, ls[i].backlog) == -1) {
-            if (nts_listen(s, ls[i].backlog) == -1) {
+            printf("[ngx_open_listening_sockets with listen socket NUM = %ld] nts_listen with sockfd=%d, backlog = %d\n", 
+                        cycle->listening.nelts, s, ls[i].backlog);
+            retval = nts_listen(s, ls[i].backlog);
+            if (retval < 0) {
+#endif
+                retval = listen(s, ls[i].backlog);
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1) {
                 err = ngx_socket_errno;
 
                 /*
@@ -696,12 +844,21 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
 
         ls[i].log = *ls[i].logp;
 
+        int retval = -1;
         if (ls[i].rcvbuf != -1) {
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, SOL_SOCKET, SO_RCVBUF,
-            if (nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_RCVBUF,
-                           (const void *) &ls[i].rcvbuf, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_RCVBUF,
+                           (const void *) &ls[i].rcvbuf, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, SOL_SOCKET, SO_RCVBUF,
+                           (const void *) &ls[i].rcvbuf, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(SO_RCVBUF, %d) %V failed, ignored",
@@ -710,11 +867,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
         }
 
         if (ls[i].sndbuf != -1) {
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, SOL_SOCKET, SO_SNDBUF,
-            if (nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_SNDBUF,
-                           (const void *) &ls[i].sndbuf, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_SNDBUF,
+                           (const void *) &ls[i].sndbuf, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, SOL_SOCKET, SO_SNDBUF,
+                           (const void *) &ls[i].sndbuf, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(SO_SNDBUF, %d) %V failed, ignored",
@@ -725,11 +891,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
         if (ls[i].keepalive) {
             value = (ls[i].keepalive == 1) ? 1 : 0;
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, SOL_SOCKET, SO_KEEPALIVE,
-            if (nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_KEEPALIVE,
-                           (const void *) &value, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_KEEPALIVE,
+                           (const void *) &value, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, SOL_SOCKET, SO_KEEPALIVE,
+                           (const void *) &value, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(SO_KEEPALIVE, %d) %V failed, ignored",
@@ -746,11 +921,19 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
             value *= NGX_KEEPALIVE_FACTOR;
 #endif
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPIDLE,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPIDLE,
-                           (const void *) &value, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPIDLE,
+                           (const void *) &value, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPIDLE,
+                           (const void *) &value, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif 
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(TCP_KEEPIDLE, %d) %V failed, ignored",
@@ -765,11 +948,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
             value *= NGX_KEEPALIVE_FACTOR;
 #endif
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPINTVL,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPINTVL,
-                           (const void *) &value, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPINTVL,
+                           (const void *) &value, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPINTVL,
+                           (const void *) &value, sizeof(int));
+#if (NGX_USE_NTS)            
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                              "setsockopt(TCP_KEEPINTVL, %d) %V failed, ignored",
@@ -778,11 +970,21 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
         }
 
         if (ls[i].keepcnt) {
+
+            retval = -1;
+#if (NGX_USE_NTS) 
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPCNT,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPCNT,
-                           (const void *) &ls[i].keepcnt, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPCNT,
+                           (const void *) &ls[i].keepcnt, sizeof(int));
+            if (retval < 0) {
+#endif 
+                retval = setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPCNT,
+                           (const void *) &ls[i].keepcnt, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif 
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(TCP_KEEPCNT, %d) %V failed, ignored",
@@ -794,11 +996,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
 
 #if (NGX_HAVE_SETFIB)
         if (ls[i].setfib != -1) {
+            retval = -1;
+#if (NGX_USE_NTS) 
             // for nts
-            // if (setsockopt(ls[i].fd, SOL_SOCKET, SO_SETFIB,
-            if (nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_SETFIB,
-                           (const void *) &ls[i].setfib, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_SETFIB,
+                           (const void *) &ls[i].setfib, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, SOL_SOCKET, SO_SETFIB,
+                           (const void *) &ls[i].setfib, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif 
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(SO_SETFIB, %d) %V failed, ignored",
@@ -809,11 +1020,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
 
 #if (NGX_HAVE_TCP_FASTOPEN)
         if (ls[i].fastopen != -1) {
+            retval = -1;
+#if (NGX_USE_NTS) 
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_TCP, TCP_FASTOPEN,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_FASTOPEN,
-                           (const void *) &ls[i].fastopen, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_FASTOPEN,
+                           (const void *) &ls[i].fastopen, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, IPPROTO_TCP, TCP_FASTOPEN,
+                           (const void *) &ls[i].fastopen, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(TCP_FASTOPEN, %d) %V failed, ignored",
@@ -826,11 +1046,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
         if (1) {
             int tcp_nodelay = 1;
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_TCP, TCP_NODELAY,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_NODELAY,
-                       (const void *) &tcp_nodelay, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_NODELAY,
+                       (const void *) &tcp_nodelay, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, IPPROTO_TCP, TCP_NODELAY,
+                       (const void *) &tcp_nodelay, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(TCP_NODELAY) %V failed, ignored",
@@ -843,9 +1072,19 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
 
             /* change backlog via listen() */
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (listen(ls[i].fd, ls[i].backlog) == -1) {
-            if (nts_listen(ls[i].fd, ls[i].backlog) == -1) {
+            printf("[ngx_configure_listening_sockets] nts_listen with sockfd=%d, backlog = %d\n", ls[i].fd, ls[i].backlog);
+            retval = nts_listen(ls[i].fd, ls[i].backlog);
+            if (retval < 0) {
+#endif
+                retval = listen(ls[i].fd, ls[i].backlog);
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1) {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "listen() to %V, backlog %d failed, ignored",
                               &ls[i].addr_text, ls[i].backlog);
@@ -862,10 +1101,18 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
 #ifdef SO_ACCEPTFILTER
 
         if (ls[i].delete_deferred) {
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER, NULL, 0)
-            if (nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER, NULL, 0)
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER, NULL, 0);
+            if (retval < 0) {
+#endif
+                retval = nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER, NULL, 0);
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(SO_ACCEPTFILTER, NULL) "
@@ -890,11 +1137,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
             (void) ngx_cpystrn((u_char *) af.af_name,
                                (u_char *) ls[i].accept_filter, 16);
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER,
-            if (nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER,
-                           &af, sizeof(struct accept_filter_arg))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER,
+                           &af, sizeof(struct accept_filter_arg));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, SOL_SOCKET, SO_ACCEPTFILTER,
+                           &af, sizeof(struct accept_filter_arg));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(SO_ACCEPTFILTER, \"%s\") "
@@ -925,11 +1181,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
                 value = 0;
             }
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT,
-                           &value, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT,
+                           &value, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT,
+                           &value, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(TCP_DEFER_ACCEPT, %d) for %V failed, "
@@ -956,11 +1221,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
         {
             value = 1;
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_IP, IP_RECVDSTADDR,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_IP, IP_RECVDSTADDR,
-                           (const void *) &value, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_IP, IP_RECVDSTADDR,
+                           (const void *) &value, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, IPPROTO_IP, IP_RECVDSTADDR,
+                           (const void *) &value, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(IP_RECVDSTADDR) "
@@ -977,11 +1251,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
         {
             value = 1;
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_IP, IP_PKTINFO,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_IP, IP_PKTINFO,
-                           (const void *) &value, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_IP, IP_PKTINFO,
+                           (const void *) &value, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, IPPROTO_IP, IP_PKTINFO,
+                           (const void *) &value, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(IP_PKTINFO) "
@@ -1000,11 +1283,20 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
         {
             value = 1;
 
+            retval = -1;
+#if (NGX_USE_NTS)
             // for nts
-            // if (setsockopt(ls[i].fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
-            if (nts_setsockopt(ls[i].fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
-                           (const void *) &value, sizeof(int))
-                == -1)
+            retval = nts_setsockopt(ls[i].fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
+                           (const void *) &value, sizeof(int));
+            if (retval < 0) {
+#endif
+                retval = setsockopt(ls[i].fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
+                           (const void *) &value, sizeof(int));
+#if (NGX_USE_NTS)
+            }
+#endif
+
+            if (retval == -1)
             {
                 ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_socket_errno,
                               "setsockopt(IPV6_RECVPKTINFO) "
@@ -1385,9 +1677,18 @@ ngx_connection_local_sockaddr(ngx_connection_t *c, ngx_str_t *s,
 
         len = sizeof(ngx_sockaddr_t);
 
+        int retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockname(c->fd, &sa.sockaddr, &len) == -1) {
-        if (nts_getsockname(c->fd, &sa.sockaddr, &len) == -1) {
+        retval = nts_getsockname(c->fd, &sa.sockaddr, &len);
+        if (retval < 0) {
+#endif
+            retval = getsockname(c->fd, &sa.sockaddr, &len);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1) {
             ngx_connection_error(c, ngx_socket_errno, "getsockname() failed");
             return NGX_ERROR;
         }
@@ -1426,11 +1727,20 @@ ngx_tcp_nodelay(ngx_connection_t *c)
 
     tcp_nodelay = 1;
 
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // if (setsockopt(c->fd, IPPROTO_TCP, TCP_NODELAY,
-    if (nts_setsockopt(c->fd, IPPROTO_TCP, TCP_NODELAY,
-                   (const void *) &tcp_nodelay, sizeof(int))
-        == -1)
+    retval = nts_setsockopt(c->fd, IPPROTO_TCP, TCP_NODELAY,
+                   (const void *) &tcp_nodelay, sizeof(int));
+    if (retval < 0) {
+#endif
+        retval = setsockopt(c->fd, IPPROTO_TCP, TCP_NODELAY,
+                   (const void *) &tcp_nodelay, sizeof(int));
+#if (NGX_USE_NTS)
+    }
+#endif
+
+    if (retval == -1)
     {
 #if (NGX_SOLARIS)
         if (c->log_error == NGX_ERROR_INFO) {

@@ -9,7 +9,7 @@
 #include <ngx_core.h>
 #include <ngx_event.h>
 #include <ngx_event_connect.h>
-
+#include <stdio.h>
 
 #if (NGX_HAVE_TRANSPARENT_PROXY)
 static ngx_int_t ngx_event_connect_set_transparent(ngx_peer_connection_t *pc,
@@ -38,7 +38,16 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
 
     type = (pc->type ? pc->type : SOCK_STREAM);
 
-    s = ngx_socket(pc->sockaddr->sa_family, type, 0);
+#if (NGX_USE_NTS)
+    // for nts
+    if (type == SOCK_STREAM) {
+        s = nts_ngx_socket(pc->sockaddr->sa_family, type, 0);
+    } else {
+#endif
+        s = ngx_socket(pc->sockaddr->sa_family, type, 0);
+#if (NGX_USE_NTS)
+    }
+#endif
 
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, pc->log, 0, "%s socket %d",
                    (type == SOCK_STREAM) ? "stream" : "dgram", s);
@@ -64,10 +73,22 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     c->type = type;
 
     if (pc->rcvbuf) {
-        // for nts
-        // if (setsockopt(s, SOL_SOCKET, SO_RCVBUF,
-        if (nts_setsockopt(s, SOL_SOCKET, SO_RCVBUF,
-                       (const void *) &pc->rcvbuf, sizeof(int)) == -1)
+
+        int retval = -1;
+#if (NGX_USE_NTS)
+        if (type == SOCK_STREAM) {
+            // for nts
+            retval = nts_setsockopt(s, SOL_SOCKET, SO_RCVBUF,
+                        (const void *) &pc->rcvbuf, sizeof(int));
+        }
+        if (retval != 0) {
+#endif 
+            retval = setsockopt(s, SOL_SOCKET, SO_RCVBUF,
+                       (const void *) &pc->rcvbuf, sizeof(int));
+#if (NGX_USE_NTS)
+        }
+#endif 
+        if (retval == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, pc->log, ngx_socket_errno,
                           "setsockopt(SO_RCVBUF) failed");
@@ -102,11 +123,23 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
             static int  bind_address_no_port = 1;
 
             if (bind_address_no_port) {
-                // for nts
-                // if (setsockopt(s, IPPROTO_IP, IP_BIND_ADDRESS_NO_PORT,
-                if (nts_setsockopt(s, IPPROTO_IP, IP_BIND_ADDRESS_NO_PORT,
+                int retval = -1;
+#if (NGX_USE_NTS)
+                if (type == SOCK_STREAM) {
+                    // for nts
+                    retval = nts_setsockopt(s, IPPROTO_IP, IP_BIND_ADDRESS_NO_PORT,
+                                (const void *) &bind_address_no_port,
+                                sizeof(int));
+                }
+                if (retval != 0) {
+#endif
+                    retval = setsockopt(s, IPPROTO_IP, IP_BIND_ADDRESS_NO_PORT,
                                (const void *) &bind_address_no_port,
-                               sizeof(int)) == -1)
+                               sizeof(int));
+#if (NGX_USE_NTS)
+                }
+#endif
+                if (retval == -1)
                 {
                     err = ngx_socket_errno;
 
@@ -143,9 +176,20 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
 
 #endif
 
-        // for nts
-        // if (bind(s, pc->local->sockaddr, pc->local->socklen) == -1) {
-        if (nts_bind(s, pc->local->sockaddr, pc->local->socklen) == -1) {
+        int retval = -1;
+#if (NGX_USE_NTS)
+        if (type == SOCK_STREAM) {
+            // for nts
+            retval = nts_bind(s, pc->local->sockaddr, pc->local->socklen);
+        }
+        if (retval != 0) {
+#endif
+            retval = bind(s, pc->local->sockaddr, pc->local->socklen);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1) {
             ngx_log_error(NGX_LOG_CRIT, pc->log, ngx_socket_errno,
                           "bind(%V) failed", &pc->local->name);
 
@@ -198,9 +242,18 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, pc->log, 0,
                    "connect to %V, fd:%d #%uA", pc->name, s, c->number);
 
+    rc = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // rc = connect(s, pc->sockaddr, pc->socklen);
-    rc = nts_connect(s, pc->sockaddr, pc->socklen);
+    if (type == SOCK_STREAM) { 
+        rc = nts_connect(s, pc->sockaddr, pc->socklen);
+    }
+    if (rc != 0) {
+#endif
+        rc = connect(s, pc->sockaddr, pc->socklen);
+#if (NGX_USE_NTS)
+    }
+#endif
 
     if (rc == -1) {
         err = ngx_socket_errno;
@@ -336,10 +389,20 @@ ngx_event_connect_set_transparent(ngx_peer_connection_t *pc, ngx_socket_t s)
 
 #if defined(SO_BINDANY)
 
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
-    // if (setsockopt(s, SOL_SOCKET, SO_BINDANY,
-    if (nts_setsockopt(s, SOL_SOCKET, SO_BINDANY,
-                   (const void *) &value, sizeof(int)) == -1)
+    retval = nts_setsockopt(s, SOL_SOCKET, SO_BINDANY,
+                   (const void *) &value, sizeof(int));
+    if (retval != 0) {
+#endif
+        retval = setsockopt(s, SOL_SOCKET, SO_BINDANY,
+                   (const void *) &value, sizeof(int));
+#if (NGX_USE_NTS)
+    }
+#endif
+
+    if (retval == -1)
     {
         ngx_log_error(NGX_LOG_ALERT, pc->log, ngx_socket_errno,
                       "setsockopt(SO_BINDANY) failed");
@@ -348,16 +411,26 @@ ngx_event_connect_set_transparent(ngx_peer_connection_t *pc, ngx_socket_t s)
 
 #else
 
+    int retval = -1;
     switch (pc->local->sockaddr->sa_family) {
 
     case AF_INET:
 
 #if defined(IP_TRANSPARENT)
 
+#if (NGX_USE_NTS)
         // for nts
-        // if (setsockopt(s, IPPROTO_IP, IP_TRANSPARENT,
-        if (nts_setsockopt(s, IPPROTO_IP, IP_TRANSPARENT,
-                       (const void *) &value, sizeof(int)) == -1)
+        retval = nts_setsockopt(s, IPPROTO_IP, IP_TRANSPARENT,
+                       (const void *) &value, sizeof(int));
+        if (retval != 0) {
+#endif
+            retval = setsockopt(s, IPPROTO_IP, IP_TRANSPARENT,
+                       (const void *) &value, sizeof(int));
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, pc->log, ngx_socket_errno,
                           "setsockopt(IP_TRANSPARENT) failed");
@@ -366,10 +439,18 @@ ngx_event_connect_set_transparent(ngx_peer_connection_t *pc, ngx_socket_t s)
 
 #elif defined(IP_BINDANY)
 
+        retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (setsockopt(s, IPPROTO_IP, IP_BINDANY,
-        if (nts_setsockopt(s, IPPROTO_IP, IP_BINDANY,
-                       (const void *) &value, sizeof(int)) == -1)
+        retval = nts_setsockopt(s, IPPROTO_IP, IP_BINDANY,
+                       (const void *) &value, sizeof(int));
+        if (retval != 0) {
+            retval = setsockopt(s, IPPROTO_IP, IP_BINDANY,
+                       (const void *) &value, sizeof(int));
+        }
+#endif
+
+        if (retval == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, pc->log, ngx_socket_errno,
                           "setsockopt(IP_BINDANY) failed");
@@ -384,11 +465,13 @@ ngx_event_connect_set_transparent(ngx_peer_connection_t *pc, ngx_socket_t s)
 
     case AF_INET6:
 
-#if defined(IPV6_TRANSPARENT)
+#if (NGX_USE_NTS)
+        printf("NTSocks doesn't support AF_INET6\n");
+#endif
 
+#if defined(IPV6_TRANSPARENT)
         // for nts
-        // if (setsockopt(s, IPPROTO_IPV6, IPV6_TRANSPARENT,
-        if (nts_setsockopt(s, IPPROTO_IPV6, IPV6_TRANSPARENT,
+        if (setsockopt(s, IPPROTO_IPV6, IPV6_TRANSPARENT,
                        (const void *) &value, sizeof(int)) == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, pc->log, ngx_socket_errno,
@@ -397,9 +480,7 @@ ngx_event_connect_set_transparent(ngx_peer_connection_t *pc, ngx_socket_t s)
         }
 
 #elif defined(IPV6_BINDANY)
-
         // for nts
-        // if (setsockopt(s, IPPROTO_IPV6, IPV6_BINDANY,
         if (setsockopt(s, IPPROTO_IPV6, IPV6_BINDANY,
                        (const void *) &value, sizeof(int)) == -1)
         {

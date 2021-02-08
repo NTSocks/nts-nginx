@@ -4380,6 +4380,7 @@ ngx_udp_connect(ngx_resolver_connection_t *rec)
     ngx_socket_t       s;
     ngx_connection_t  *c;
 
+    printf("[ngx_udp_connect] ngx_socket with SOCK_DGRAM \n");
     s = ngx_socket(rec->sockaddr->sa_family, SOCK_DGRAM, 0);
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, &rec->log, 0, "UDP socket %d", s);
@@ -4468,7 +4469,12 @@ ngx_tcp_connect(ngx_resolver_connection_t *rec)
     ngx_event_t       *rev, *wev;
     ngx_connection_t  *c;
 
+#if (NGX_USE_NTS)
+    // for nts
+    s = nts_ngx_socket(rec->sockaddr->sa_family, SOCK_STREAM, 0);
+#elif
     s = ngx_socket(rec->sockaddr->sa_family, SOCK_STREAM, 0);
+#endif
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, &rec->log, 0, "TCP socket %d", s);
 
@@ -4515,9 +4521,15 @@ ngx_tcp_connect(ngx_resolver_connection_t *rec)
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, &rec->log, 0,
                    "connect to %V, fd:%d #%uA", &rec->server, s, c->number);
 
+#if (NGX_USE_NTS)
     // for nts
-    // rc = connect(s, rec->sockaddr, rec->socklen);
     rc = nts_connect(s, rec->sockaddr, rec->socklen);
+    if (rc < 0) {
+#endif
+        rc = connect(s, rec->sockaddr, rec->socklen);
+#if (NGX_USE_NTS)
+    }
+#endif
 
     if (rc == -1) {
         err = ngx_socket_errno;

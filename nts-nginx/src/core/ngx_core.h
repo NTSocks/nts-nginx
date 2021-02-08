@@ -11,8 +11,10 @@
 
 #include <ngx_config.h>
 
+#if (NGX_USE_NTS)
 // for nts
 #include <nts_api.h>
+#endif
 
 
 typedef struct ngx_module_s          ngx_module_t;

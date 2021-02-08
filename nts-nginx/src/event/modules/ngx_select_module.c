@@ -367,9 +367,18 @@ ngx_select_repair_fd_sets(ngx_cycle_t *cycle)
 
         len = sizeof(int);
 
+        int retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(s, SOL_SOCKET, SO_TYPE, &n, &len) == -1) {
-        if (nts_getsockopt(s, SOL_SOCKET, SO_TYPE, &n, &len) == -1) {
+        retval = nts_getsockopt(s, SOL_SOCKET, SO_TYPE, &n, &len);
+        if (retval != 0) {
+#endif
+            retval = getsockopt(s, SOL_SOCKET, SO_TYPE, &n, &len);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1) {
             err = ngx_socket_errno;
 
             ngx_log_error(NGX_LOG_ALERT, cycle->log, err,
@@ -387,9 +396,18 @@ ngx_select_repair_fd_sets(ngx_cycle_t *cycle)
 
         len = sizeof(int);
 
+        int retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(s, SOL_SOCKET, SO_TYPE, &n, &len) == -1) {
-        if (nts_getsockopt(s, SOL_SOCKET, SO_TYPE, &n, &len) == -1) {
+        retval = nts_getsockopt(s, SOL_SOCKET, SO_TYPE, &n, &len);
+        if (retval != 0) {
+#endif
+            retval = getsockopt(s, SOL_SOCKET, SO_TYPE, &n, &len);
+#if (NGX_USE_NTS)
+        }
+#endif
+
+        if (retval == -1) {
             err = ngx_socket_errno;
 
             ngx_log_error(NGX_LOG_ALERT, cycle->log, err,

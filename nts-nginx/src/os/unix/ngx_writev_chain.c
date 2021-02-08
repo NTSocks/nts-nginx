@@ -186,9 +186,15 @@ ngx_writev(ngx_connection_t *c, ngx_iovec_t *vec)
 
 eintr:
 
+#if (NGX_USE_NTS)
     // for nts
-    // n = writev(c->fd, vec->iovs, vec->count);
     n = nts_writev(c->fd, vec->iovs, vec->count);
+    if (n <= 0) {
+#endif
+        n = writev(c->fd, vec->iovs, vec->count);
+#if (NGX_USE_NTS)
+    }
+#endif
 
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, c->log, 0,
                    "writev: %z of %uz", n, vec->size);

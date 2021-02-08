@@ -318,6 +318,7 @@ ngx_syslog_init_peer(ngx_syslog_peer_t *peer)
 
     ngx_syslog_dummy_event.log = &ngx_syslog_dummy_log;
 
+    printf("[ngx_syslog_init_peer] ngx_socket with SOCK_DGRAM\n");
     fd = ngx_socket(peer->server.sockaddr->sa_family, SOCK_DGRAM, 0);
     if (fd == (ngx_socket_t) -1) {
         ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, ngx_socket_errno,
@@ -331,7 +332,17 @@ ngx_syslog_init_peer(ngx_syslog_peer_t *peer)
         goto failed;
     }
 
+    int retval = -1;
+#if (NGX_USE_NTS)
     // for nts
+    retval = nts_connect(fd, peer->server.sockaddr, peer->server.socklen);
+    if (retval < 0) {
+#endif
+        retval = connect(fd, peer->server.sockaddr, peer->server.socklen);
+#if (NGX_USE_NTS)
+    }
+#endif
+
     // if (connect(fd, peer->server.sockaddr, peer->server.socklen) == -1) {
     if (nts_connect(fd, peer->server.sockaddr, peer->server.socklen) == -1) {
         ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, ngx_socket_errno,

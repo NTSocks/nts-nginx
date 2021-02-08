@@ -1399,11 +1399,18 @@ ngx_http_upstream_check_broken_connection(ngx_http_request_t *r,
          * BSDs and Linux return 0 and set a pending error in err
          * Solaris returns -1 and sets errno
          */
-
+        int retval = -1;
+#if (NGX_USE_NTS)
         // for nts
-        // if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
-        if (nts_getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len)
-            == -1)
+        retval = nts_getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len);
+        if (retval != 0) {
+#endif
+            retval = getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void *) &err, &len);
+#if (NGX_USE_NTS)
+        }
+#endif 
+
+        if (retval == -1)
         {
             err = ngx_socket_errno;
         }
