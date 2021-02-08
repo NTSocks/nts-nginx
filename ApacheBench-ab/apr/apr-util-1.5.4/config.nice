@@ -1,0 +1,8 @@
+#! /bin/sh
+#
+# Created by configure
+
+"./configure" \
+"--prefix=/home/ntb-server1/repos/ApacheBench-ab/apr/aprutil-build" \
+"--with-apr=/home/ntb-server1/repos/ApacheBench-ab/apr/apr-build" \
+"$@"

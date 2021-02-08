@@ -1,0 +1,128 @@
+This is ApacheBench, Version 2.3 <$Revision$>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 10.176.22.211 (be patient).....done
+
+
+Server Software:        nginx/1.8.1
+Server Hostname:        10.176.22.211
+Server Port:            80
+
+Document Path:          
+                       /VOD4K/Test_track17.8.mp4
+                       /VOD4K/Test_track18.8.mp4
+                       /VOD4K/Test_track19.8.mp4
+                       /VOD4K/Test_track20.8.mp4
+                       /VOD4K/Test_track29.8.mp4
+                       /VOD4K/Test_track30.8.mp4
+                       /VOD4K/Test_track31.8.mp4
+                       /VOD4K/Test_track32.8.mp4
+                       /VOD4K/Test_track41.8.mp4
+                       /VOD4K/Test_track42.8.mp4
+                       /VOD4K/Test_track43.8.mp4
+                       /VOD4K/Test_track44.8.mp4
+                       /VOD4K/Test_track53.8.mp4
+                       /VOD4K/Test_track54.8.mp4
+                       /VOD4K/Test_track55.8.mp4
+                       /VOD4K/Test_track56.8.mp4
+                       /VOD4K/Test_track73.8.mp4
+                       /VOD4K/Test_track74.8.mp4
+                       /VOD4K/Test_track75.8.mp4
+                       /VOD4K/Test_track76.8.mp4
+Document Length:        3679368 bytes
+
+Concurrency Level:      8
+Time taken for tests:   0.011 seconds, 11040.000000 us
+Complete requests:      8
+Failed requests:        0
+Write errors:           0
+Keep-Alive requests:    8
+Total transferred:      3717704 bytes
+HTML transferred:       3679368 bytes
+Requests per second:    724.64 [#/sec] (mean)
+Time per request:       11.040 [ms] (mean)
+Time per request:       1.380 [ms] (mean, across all concurrent requests)
+Transfer rate:          328856.01 [Kbytes/sec] received
+connect:273, process:7136, wait:5707, total:7409, transfer:1429
+connect:196, process:8385, wait:6983, total:8581, transfer:1402
+connect:204, process:8636, wait:7069, total:8840, transfer:1567
+connect:222, process:9030, wait:7334, total:9252, transfer:1696
+connect:216, process:9047, wait:7602, total:9263, transfer:1445
+connect:192, process:9745, wait:7959, total:9937, transfer:1786
+connect:209, process:9924, wait:8526, total:10133, transfer:1398
+connect:199, process:10618, wait:9254, total:10817, transfer:1364
+@MEASUREMENT(requests = 1, concurrency = 8):
+AVERAGE = 7136.00 us
+50 TAIL = 7136.00 us
+99 TAIL = 7136.00 us
+99.9 TAIL = 7136.00 us
+99.99 TAIL = 7136.00 us
+@MEASUREMENT(requests = 1, concurrency = 8):
+AVERAGE = 9745.00 us
+50 TAIL = 9745.00 us
+99 TAIL = 9745.00 us
+99.9 TAIL = 9745.00 us
+99.99 TAIL = 9745.00 us
+@MEASUREMENT(requests = 1, concurrency = 8):
+AVERAGE = 9030.00 us
+50 TAIL = 9030.00 us
+99 TAIL = 9030.00 us
+99.9 TAIL = 9030.00 us
+99.99 TAIL = 9030.00 us
+@MEASUREMENT(requests = 1, concurrency = 8):
+AVERAGE = 9047.00 us
+50 TAIL = 9047.00 us
+99 TAIL = 9047.00 us
+99.9 TAIL = 9047.00 us
+99.99 TAIL = 9047.00 us
+@MEASUREMENT(requests = 1, concurrency = 8):
+AVERAGE = 9924.00 us
+50 TAIL = 9924.00 us
+99 TAIL = 9924.00 us
+99.9 TAIL = 9924.00 us
+99.99 TAIL = 9924.00 us
+@MEASUREMENT(requests = 1, concurrency = 8):
+AVERAGE = 8636.00 us
+50 TAIL = 8636.00 us
+99 TAIL = 8636.00 us
+99.9 TAIL = 8636.00 us
+99.99 TAIL = 8636.00 us
+@MEASUREMENT(requests = 1, concurrency = 8):
+AVERAGE = 10618.00 us
+50 TAIL = 10618.00 us
+99 TAIL = 10618.00 us
+99.9 TAIL = 10618.00 us
+99.99 TAIL = 10618.00 us
+@MEASUREMENT(requests = 1, concurrency = 8):
+AVERAGE = 8385.00 us
+50 TAIL = 8385.00 us
+99 TAIL = 8385.00 us
+99.9 TAIL = 8385.00 us
+99.99 TAIL = 8385.00 us
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:      192  213   0.0    209     273
+Processing:  7136 9065   1.1   9047   10618
+Waiting:     5707 7554   1.1   7602    9254
+Total:       7409 9279   1.0   9263   10817
+ERROR: The median and mean for the initial connection time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the processing time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the waiting time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the total time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+
+Percentage of the requests served within a certain time (ms)
+  50%      9
+  66%     10
+  75%     10
+  80%     10
+  90%     11
+  95%     11
+  98%     11
+  99%     11
+ 100%     11 (longest request)

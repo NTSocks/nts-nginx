@@ -1,0 +1,100 @@
+This is ApacheBench, Version 2.3 <$Revision$>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 10.176.22.211 (be patient)
+
+
+Server Software:        nginx/1.8.1
+Server Hostname:        10.176.22.211
+Server Port:            80
+
+Document Path:          
+                       /VOD4K/Test_track17.8.mp4
+                       /VOD4K/Test_track18.8.mp4
+                       /VOD4K/Test_track19.8.mp4
+                       /VOD4K/Test_track20.8.mp4
+                       /VOD4K/Test_track29.8.mp4
+                       /VOD4K/Test_track30.8.mp4
+                       /VOD4K/Test_track31.8.mp4
+                       /VOD4K/Test_track32.8.mp4
+                       /VOD4K/Test_track41.8.mp4
+                       /VOD4K/Test_track42.8.mp4
+                       /VOD4K/Test_track43.8.mp4
+                       /VOD4K/Test_track44.8.mp4
+                       /VOD4K/Test_track53.8.mp4
+                       /VOD4K/Test_track54.8.mp4
+                       /VOD4K/Test_track55.8.mp4
+                       /VOD4K/Test_track56.8.mp4
+                       /VOD4K/Test_track73.8.mp4
+                       /VOD4K/Test_track74.8.mp4
+                       /VOD4K/Test_track75.8.mp4
+                       /VOD4K/Test_track76.8.mp4
+Document Length:        18396840000 bytes
+
+Concurrency Level:      4
+Time taken for tests:   48.130 seconds, 48129720.000000 us
+Complete requests:      4
+Failed requests:        0
+Write errors:           0
+Keep-Alive requests:    4
+Total transferred:      18588480000 bytes
+HTML transferred:       18396840000 bytes
+Requests per second:    0.08 [#/sec] (mean)
+Time per request:       48129.720 [ms] (mean)
+Time per request:       12032.430 [ms] (mean, across all concurrent requests)
+Transfer rate:          377164.31 [Kbytes/sec] received
+connect:330472, process:47767901, wait:33336111, total:48098373, transfer:14431790
+connect:331094, process:47767951, wait:33340847, total:48099045, transfer:14427104
+connect:329573, process:47773525, wait:33314594, total:48103098, transfer:14458931
+connect:329429, process:47800064, wait:33356072, total:48129493, transfer:14443992
+@MEASUREMENT(requests = 10000, concurrency = 4):
+AVERAGE = 4768.37 us
+50 TAIL = 4796.00 us
+99 TAIL = 6307.00 us
+99.9 TAIL = 7442.00 us
+99.99 TAIL = 35606.00 us
+@MEASUREMENT(requests = 10000, concurrency = 4):
+AVERAGE = 4765.09 us
+50 TAIL = 4797.00 us
+99 TAIL = 6174.00 us
+99.9 TAIL = 7495.00 us
+99.99 TAIL = 36005.00 us
+@MEASUREMENT(requests = 10000, concurrency = 4):
+AVERAGE = 4765.62 us
+50 TAIL = 4795.00 us
+99 TAIL = 6258.00 us
+99.9 TAIL = 7552.00 us
+99.99 TAIL = 36374.00 us
+@MEASUREMENT(requests = 10000, concurrency = 4):
+AVERAGE = 4765.10 us
+50 TAIL = 4797.00 us
+99 TAIL = 6269.00 us
+99.9 TAIL = 7802.00 us
+99.99 TAIL = 36087.00 us
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:    329429 330142   0.8 330472  331094
+Processing: 47767901 47777360  15.4 47773525 47800064
+Waiting:    33314594 33336906  17.1 33340847 33356072
+Total:      48098373 48107502  14.8 48103098 48129493
+ERROR: The median and mean for the initial connection time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the processing time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the waiting time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the total time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+
+Percentage of the requests served within a certain time (ms)
+  50%  48103
+  66%  48103
+  75%  48129
+  80%  48129
+  90%  48129
+  95%  48129
+  98%  48129
+  99%  48129
+ 100%  48129 (longest request)

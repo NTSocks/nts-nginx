@@ -1,0 +1,60 @@
+This is ApacheBench, Version 2.3 <$Revision$>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 10.176.22.211 (be patient)
+
+
+Server Software:        nginx/1.8.1
+Server Hostname:        10.176.22.211
+Server Port:            80
+
+Document Path:          
+                       /VOD4K/Test_track17.8.mp4
+                       /VOD4K/Test_track18.8.mp4
+                       /VOD4K/Test_track19.8.mp4
+                       /VOD4K/Test_track20.8.mp4
+                       /VOD4K/Test_track29.8.mp4
+                       /VOD4K/Test_track30.8.mp4
+                       /VOD4K/Test_track31.8.mp4
+                       /VOD4K/Test_track32.8.mp4
+                       /VOD4K/Test_track41.8.mp4
+                       /VOD4K/Test_track42.8.mp4
+                       /VOD4K/Test_track43.8.mp4
+                       /VOD4K/Test_track44.8.mp4
+                       /VOD4K/Test_track53.8.mp4
+                       /VOD4K/Test_track54.8.mp4
+                       /VOD4K/Test_track55.8.mp4
+                       /VOD4K/Test_track56.8.mp4
+                       /VOD4K/Test_track73.8.mp4
+                       /VOD4K/Test_track74.8.mp4
+                       /VOD4K/Test_track75.8.mp4
+                       /VOD4K/Test_track76.8.mp4
+Document Length:        459921000 bytes
+
+Concurrency Level:      1
+Time taken for tests:   4.002 seconds, 4002280.000000 us
+Complete requests:      1
+Failed requests:        0
+Write errors:           0
+Keep-Alive requests:    1
+Total transferred:      464712000 bytes
+HTML transferred:       459921000 bytes
+Requests per second:    0.25 [#/sec] (mean)
+Time per request:       4002.280 [ms] (mean)
+Time per request:       4002.280 [ms] (mean, across all concurrent requests)
+Transfer rate:          113390.45 [Kbytes/sec] received
+connect:29311, process:3972837, wait:2435472, total:4002148, transfer:1537365
+@MEASUREMENT(requests = 1000, concurrency = 1):
+AVERAGE = 3959.15 us
+50 TAIL = 3913.00 us
+99 TAIL = 5135.00 us
+99.9 TAIL = 5614.00 us
+99.99 TAIL = 5614.00 us
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:    29311 29311   0.0  29311   29311
+Processing: 3972837 3972837   0.0 3972837 3972837
+Waiting:    2435472 2435472   0.0 2435472 2435472
+Total:      4002148 4002148   0.0 4002148 4002148

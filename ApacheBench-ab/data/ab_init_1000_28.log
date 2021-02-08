@@ -1,0 +1,268 @@
+This is ApacheBench, Version 2.3 <$Revision$>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 10.176.22.211 (be patient)
+
+
+Server Software:        nginx/1.8.1
+Server Hostname:        10.176.22.211
+Server Port:            80
+
+Document Path:          
+                       /VOD4K/Test_track17.8.mp4
+                       /VOD4K/Test_track18.8.mp4
+                       /VOD4K/Test_track19.8.mp4
+                       /VOD4K/Test_track20.8.mp4
+                       /VOD4K/Test_track29.8.mp4
+                       /VOD4K/Test_track30.8.mp4
+                       /VOD4K/Test_track31.8.mp4
+                       /VOD4K/Test_track32.8.mp4
+                       /VOD4K/Test_track41.8.mp4
+                       /VOD4K/Test_track42.8.mp4
+                       /VOD4K/Test_track43.8.mp4
+                       /VOD4K/Test_track44.8.mp4
+                       /VOD4K/Test_track53.8.mp4
+                       /VOD4K/Test_track54.8.mp4
+                       /VOD4K/Test_track55.8.mp4
+                       /VOD4K/Test_track56.8.mp4
+                       /VOD4K/Test_track73.8.mp4
+                       /VOD4K/Test_track74.8.mp4
+                       /VOD4K/Test_track75.8.mp4
+                       /VOD4K/Test_track76.8.mp4
+Document Length:        12877788000 bytes
+
+Concurrency Level:      28
+Time taken for tests:   11.789 seconds, 11789268.000000 us
+Complete requests:      28
+Failed requests:        0
+Write errors:           0
+Keep-Alive requests:    28
+Total transferred:      13011936000 bytes
+HTML transferred:       12877788000 bytes
+Requests per second:    2.38 [#/sec] (mean)
+Time per request:       11789.268 [ms] (mean)
+Time per request:       421.045 [ms] (mean, across all concurrent requests)
+Transfer rate:          1077842.05 [Kbytes/sec] received
+connect:45751, process:11595555, wait:9797964, total:11641306, transfer:1797591
+connect:43057, process:11628571, wait:9823661, total:11671628, transfer:1804910
+connect:43446, process:11662945, wait:9866890, total:11706391, transfer:1796055
+connect:44576, process:11664561, wait:9809218, total:11709137, transfer:1855343
+connect:44234, process:11670440, wait:9870469, total:11714674, transfer:1799971
+connect:43541, process:11672048, wait:9842369, total:11715589, transfer:1829679
+connect:44584, process:11675931, wait:9850185, total:11720515, transfer:1825746
+connect:43023, process:11677562, wait:9864799, total:11720585, transfer:1812763
+connect:43906, process:11679362, wait:9872647, total:11723268, transfer:1806715
+connect:44991, process:11689501, wait:9905450, total:11734492, transfer:1784051
+connect:45553, process:11701819, wait:9873827, total:11747372, transfer:1827992
+connect:43704, process:11704253, wait:9854902, total:11747957, transfer:1849351
+connect:45675, process:11702798, wait:9867008, total:11748473, transfer:1835790
+connect:44047, process:11706601, wait:9869394, total:11750648, transfer:1837207
+connect:43016, process:11709289, wait:9910185, total:11752305, transfer:1799104
+connect:43782, process:11709173, wait:9924605, total:11752955, transfer:1784568
+connect:43611, process:11711632, wait:9883372, total:11755243, transfer:1828260
+connect:43546, process:11712796, wait:9854847, total:11756342, transfer:1857949
+connect:44884, process:11713063, wait:9906489, total:11757947, transfer:1806574
+connect:43348, process:11714916, wait:9872841, total:11758264, transfer:1842075
+connect:44370, process:11722616, wait:9868530, total:11766986, transfer:1854086
+connect:44351, process:11726551, wait:9915029, total:11770902, transfer:1811522
+connect:45090, process:11728600, wait:9893727, total:11773690, transfer:1834873
+connect:44110, process:11733458, wait:9910691, total:11777568, transfer:1822767
+connect:43386, process:11736246, wait:9926235, total:11779632, transfer:1810011
+connect:43278, process:11737325, wait:9854137, total:11780603, transfer:1883188
+connect:43286, process:11741901, wait:9886422, total:11785187, transfer:1855479
+connect:43954, process:11744900, wait:9885080, total:11788854, transfer:1859820
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11705.65 us
+50 TAIL = 11126.00 us
+99 TAIL = 24684.00 us
+99.9 TAIL = 51343.00 us
+99.99 TAIL = 51343.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11722.71 us
+50 TAIL = 11108.00 us
+99 TAIL = 25711.00 us
+99.9 TAIL = 66106.00 us
+99.99 TAIL = 66106.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11698.21 us
+50 TAIL = 11127.00 us
+99 TAIL = 27542.00 us
+99.9 TAIL = 51256.00 us
+99.99 TAIL = 51256.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11657.11 us
+50 TAIL = 11115.00 us
+99 TAIL = 24117.00 us
+99.9 TAIL = 49374.00 us
+99.99 TAIL = 49374.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11727.43 us
+50 TAIL = 11112.00 us
+99 TAIL = 27256.00 us
+99.9 TAIL = 45434.00 us
+99.99 TAIL = 45434.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11589.51 us
+50 TAIL = 11107.00 us
+99 TAIL = 23626.00 us
+99.9 TAIL = 47103.00 us
+99.99 TAIL = 47103.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11658.62 us
+50 TAIL = 11174.00 us
+99 TAIL = 24193.00 us
+99.9 TAIL = 51585.00 us
+99.99 TAIL = 51585.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11716.61 us
+50 TAIL = 11139.00 us
+99 TAIL = 26337.00 us
+99.9 TAIL = 48564.00 us
+99.99 TAIL = 48564.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11622.57 us
+50 TAIL = 11072.00 us
+99 TAIL = 25992.00 us
+99.9 TAIL = 50260.00 us
+99.99 TAIL = 50260.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11695.80 us
+50 TAIL = 11151.00 us
+99 TAIL = 25605.00 us
+99.9 TAIL = 50394.00 us
+99.99 TAIL = 50394.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11738.97 us
+50 TAIL = 11109.00 us
+99 TAIL = 25430.00 us
+99.9 TAIL = 48095.00 us
+99.99 TAIL = 48095.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11669.97 us
+50 TAIL = 11106.00 us
+99 TAIL = 24434.00 us
+99.9 TAIL = 49532.00 us
+99.99 TAIL = 49532.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11708.97 us
+50 TAIL = 11144.00 us
+99 TAIL = 24958.00 us
+99.9 TAIL = 51493.00 us
+99.99 TAIL = 51493.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11720.67 us
+50 TAIL = 11123.00 us
+99 TAIL = 24073.00 us
+99.9 TAIL = 51618.00 us
+99.99 TAIL = 51618.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11731.53 us
+50 TAIL = 11183.00 us
+99 TAIL = 24241.00 us
+99.9 TAIL = 47610.00 us
+99.99 TAIL = 47610.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11703.13 us
+50 TAIL = 11119.00 us
+99 TAIL = 25075.00 us
+99.9 TAIL = 45732.00 us
+99.99 TAIL = 45732.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11703.34 us
+50 TAIL = 11084.00 us
+99 TAIL = 25574.00 us
+99.9 TAIL = 43267.00 us
+99.99 TAIL = 43267.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11696.90 us
+50 TAIL = 11153.00 us
+99 TAIL = 24476.00 us
+99.9 TAIL = 51149.00 us
+99.99 TAIL = 51149.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11666.01 us
+50 TAIL = 11124.00 us
+99 TAIL = 23819.00 us
+99.9 TAIL = 51385.00 us
+99.99 TAIL = 51385.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11700.74 us
+50 TAIL = 11088.00 us
+99 TAIL = 24352.00 us
+99.9 TAIL = 50920.00 us
+99.99 TAIL = 50920.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11730.36 us
+50 TAIL = 11114.00 us
+99 TAIL = 25684.00 us
+99.9 TAIL = 50573.00 us
+99.99 TAIL = 50573.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11707.15 us
+50 TAIL = 11112.00 us
+99 TAIL = 26727.00 us
+99.9 TAIL = 46637.00 us
+99.99 TAIL = 46637.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11671.62 us
+50 TAIL = 11097.00 us
+99 TAIL = 26477.00 us
+99.9 TAIL = 43822.00 us
+99.99 TAIL = 43822.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11673.39 us
+50 TAIL = 11098.00 us
+99 TAIL = 24448.00 us
+99.9 TAIL = 46013.00 us
+99.99 TAIL = 46013.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11706.85 us
+50 TAIL = 11097.00 us
+99 TAIL = 25574.00 us
+99.9 TAIL = 50816.00 us
+99.99 TAIL = 50816.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11735.95 us
+50 TAIL = 11143.00 us
+99 TAIL = 26963.00 us
+99.9 TAIL = 51067.00 us
+99.99 TAIL = 51067.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11683.60 us
+50 TAIL = 11105.00 us
+99 TAIL = 25846.00 us
+99.9 TAIL = 65221.00 us
+99.99 TAIL = 65221.00 us
+@MEASUREMENT(requests = 1000, concurrency = 28):
+AVERAGE = 11664.32 us
+50 TAIL = 11092.00 us
+99 TAIL = 23895.00 us
+99.9 TAIL = 50190.00 us
+99.99 TAIL = 50190.00 us
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:    43016 44075   0.8  43954   45751
+Processing: 11595555 11699086  34.7 11709173 11744900
+Waiting:    9797964 9873606  32.1 9872647 9926235
+Total:      11641306 11743161  34.5 11752305 11788854
+ERROR: The median and mean for the initial connection time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the processing time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the waiting time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+ERROR: The median and mean for the total time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+
+Percentage of the requests served within a certain time (ms)
+  50%  11752
+  66%  11758
+  75%  11771
+  80%  11774
+  90%  11781
+  95%  11785
+  98%  11789
+  99%  11789
+ 100%  11789 (longest request)
