@@ -193,17 +193,16 @@ make
 
 #### Run nts-ApacheBench-tool
 
-```sh
-# cd nginx-nts root path, e.g., `cd ~/nginx-nts`
+    ```sh
+    # cd nginx-nts root path, e.g., `cd ~/nginx-nts`
 
-cd ./ApacheBench-ab
-# simplely verify the correctness of ApacheeBench-tool
-./nts-ab-test.sh
+    cd ./ApacheBench-ab
+    # simplely verify the correctness of ApacheeBench-tool
+    ./nts-ab-test.sh
 
-# for single connection with specified request number
-# ./ab-new.sh
+    # for single connection with specified request number
+    # ./ab-new.sh
 
-# for multiple connections with specified request number 
-# ab-new-mul.sh
-
-```
+    # for multiple connections with specified request number 
+    # ab-new-mul.sh
+    ```
