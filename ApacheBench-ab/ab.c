@@ -510,41 +510,10 @@ static void set_polled_events(struct connection *c, apr_int32_t new_reqevents)
             }
         }
     }
-
-    // apr_status_t rv;
-
-    // if (c->pollfd.reqevents != new_reqevents) {
-    //     if (c->pollfd.reqevents != 0) {
-    //         //!!??
-    //         rv = apr_pollset_remove(readbits, &c->pollfd);
-    //         if (rv != APR_SUCCESS) {
-    //             apr_err("apr_pollset_remove()", rv);
-    //         }
-    //     }
-
-    //     if (new_reqevents != 0) {
-    //         c->pollfd.reqevents = new_reqevents;
-    //         //!!??
-    //         rv = apr_pollset_add(readbits, &c->pollfd);
-    //         if (rv != APR_SUCCESS) {
-    //             apr_err("apr_pollset_add()", rv);
-    //         }
-    //     }
-    // }
 }
 
 static void set_conn_state(struct connection *c, connect_state_e new_state)
 {
-    // apr_int16_t events_by_state[] = {
-    //     0,           /* for STATE_UNCONNECTED */
-    //     APR_POLLOUT, /* for STATE_CONNECTING */
-    //     APR_POLLIN,  /* for STATE_CONNECTED; we don't poll in this state,
-    //                   * so prepare for polling in the following state --
-    //                   * STATE_READ
-    //                   */
-    //     APR_POLLIN   /* for STATE_READ */
-    // };
-
     uint32_t events_by_state[] = {
         0,           /* for STATE_UNCONNECTED */
         EPOLLOUT, /* for STATE_STATE_CONNECTING */
@@ -1372,15 +1341,6 @@ static void start_connect(struct connection * c)
     if (c->ntsockfd <= 0) {
         apr_err("socket", c->ntsockfd);
     }
-    // if ((rv = apr_socket_create(&c->aprsock, destsa->family,
-    //             SOCK_STREAM, 0, c->ctx)) != APR_SUCCESS) {
-    // apr_err("socket", rv);
-    // }
-
-    // c->pollfd.desc_type = APR_POLL_SOCKET;
-    // c->pollfd.desc.s = c->aprsock;
-    // c->pollfd.reqevents = 0;
-    // c->pollfd.client_data = c;
 
     //!!??
     /* nts set ntsockfd NONBLOCK */
@@ -1398,17 +1358,6 @@ static void start_connect(struct connection * c)
         if (rv != APR_SUCCESS) {
             apr_err("ntsocketfd send buffer", rv);
         }
-
-        // rv = apr_socket_opt_set(c->aprsock, APR_SO_SNDBUF, 
-        //                         windowsize);
-        // if (rv != APR_SUCCESS && rv != APR_ENOTIMPL) {
-        //     apr_err("socket send buffer", rv);
-        // }
-        // rv = apr_socket_opt_set(c->aprsock, APR_SO_RCVBUF, 
-        //                         windowsize);
-        // if (rv != APR_SUCCESS && rv != APR_ENOTIMPL) {
-        //     apr_err("socket receive buffer", rv);
-        // }
     }
 
     c->start = lasttime = apr_time_now();
@@ -1465,29 +1414,6 @@ static void start_connect(struct connection * c)
         }
     }
 
-    // if ((rv = apr_socket_connect(c->aprsock, destsa)) != APR_SUCCESS) {
-    //     if (APR_STATUS_IS_EINPROGRESS(rv)) {
-    //         set_conn_state(c, STATE_CONNECTING);
-    //         c->rwrite = 0;
-    //         return;
-    //     }
-    //     else {
-    //         //!!??
-    //         set_conn_state(c, STATE_UNCONNECTED);
-    //         //!!??
-    //         apr_socket_close(c->aprsock);
-    //         err_conn++;
-    //         if (bad++ > 10) {
-    //             fprintf(stderr,
-    //                "\nTest aborted after 10 failures\n\n");
-    //             apr_err("apr_socket_connect()", rv);
-    //         }
-    //         //!!??
-    //         start_connect(c);
-    //         return;
-    //     }
-    // }
-
     /* connected first time */
     apr_hash_set(conn_ht, &c->ntsockfd, APR_HASH_KEY_INT, c);
     set_conn_state(c, STATE_CONNECTED);
@@ -1517,31 +1443,12 @@ static void close_connection(struct connection * c)
             good--;     /* connection never happened */
     }
     else {
-        // if (good == 1) {
-        //     /* first time here */
-        //     doclen = c->bread;
-        // }
-        // else if (c->bread != doclen) {
-        //     bad++;
-        //     err_length++;
-        // }
+
         if (c->bread != c->length[c->url_idx - 1]){
             bad++;
             err_length++;
         }
-        /* save out time */
-        // if (done < concurrency) {
-        //     struct data *s = &stats[done++];
-        //     c->done      = lasttime = apr_time_now();
-        //     s->starttime = c->start;
-        //     s->ctime     = ap_max(0, c->connect - c->start);
-        //     s->time      = ap_max(0, c->done - c->start);
-        //     s->waittime  = ap_max(0, c->beginread - c->endwrite);
-        //     if (heartbeatres && !(done % heartbeatres)) {
-        //         fprintf(stderr, "Completed %d requests\n", done);
-        //         fflush(stderr);
-        //     }
-        // }
+
         if (c->url_idx == ROWS && done < concurrency) {
             c->etime[c->cur_req_idx++] = apr_time_now();
             if (c->cur_req_idx == req_num){
@@ -1628,44 +1535,14 @@ static void read_connection(struct connection * c)
                 return;
             }
             r = rc;
-
-            // status = apr_socket_recv(c->aprsock, buffer, &r);
-            // // printf("apr socket recv, status=%d, r=%lu\n", status, r);
-            // if (APR_STATUS_IS_EAGAIN(status))
-            //     return;
-            // else if (r == 0 && APR_STATUS_IS_EOF(status)) {
-            //     good++;
-            //     // printf("mylog, c->bread=%lu, c->length=%lu, c->url_idx=%d, req_num=%d, c->cur_req_idx=%d, END\n", c->bread, c->length[c->url_idx - 1], c->url_idx, req_num, c->cur_req_idx);
-            //     //!!??
-            //     close_connection(c);
-            //     return;
-            // }
-            // /* catch legitimate fatal apr_socket_recv errors */
-            // else if (status != APR_SUCCESS) {
-            //     err_recv++;
-            //     if (recverrok) {
-            //         bad++;
-            //         //!!??
-            //         close_connection(c);
-            //         if (verbosity >= 1) {
-            //             char buf[120];
-            //             fprintf(stderr,"%s: %s (%d)\n", "apr_socket_recv", apr_strerror(status, buf, sizeof buf), status);
-            //         }
-            //         return;
-            //     } else {
-            //         apr_err("apr_socket_recv", status);
-            //     }
-            // }
         }
 
         totalread += rc;
         if (c->read == 0) {
             c->beginread = apr_time_now();
             c->waittime += (c->beginread - c->endwrite);
-            // printf("c->url_idx=%d, c->cur_req_idx=%d\n", c->url_idx, c->cur_req_idx);
             // if (c->url_idx == 1)
             //     c->stime[c->cur_req_idx] = apr_time_now();
-            // printf("c->url_idx=%d, c->beginread=%lu, c->beginread-c->endwrite=%lu, c->waittime=%lu\n", c->url_idx, c->beginread, c->beginread-c->endwrite, c->waittime);
         }
         c->read += rc;
 
@@ -1697,7 +1574,6 @@ static void read_connection(struct connection * c)
             }
 
             s = strstr(c->cbuff, "\r\n\r\n");
-            printf("s = %p\n", s);
             /*
             * this next line is so that we talk to NCSA 1.5 which blatantly
             * breaks the http specifaction
@@ -1707,7 +1583,6 @@ static void read_connection(struct connection * c)
                 l = 2;
             }
 
-            printf("s = %p\n", s);
             if (!s) {
                 printf("read rest next time\n");
                 /* read rest next time */
@@ -1729,7 +1604,7 @@ static void read_connection(struct connection * c)
                 }
             }
             else {
-                printf("have full header \n\n");
+                printf("have full header with c->cbuff = %s \n\n", c->cbuff);
                 /* have full header */
                 if (!good) {
                     /*
@@ -1808,20 +1683,13 @@ static void read_connection(struct connection * c)
             printf("receive body: c->bread = %lu, totalbread = %lu, r = %lu\n", c->bread, totalbread, r);
         }
         
+        printf("ready to judge: c->bread=%lu, c->length=%lu, c->keepalive=%d, c->url_idx = %d, c->cur_req_idx = %d\n", 
+                c->bread, c->length[c->url_idx - 1], c->keepalive, c->url_idx, c->cur_req_idx);
         if (c->keepalive && (c->bread >= c->length[c->url_idx - 1])) {
             printf("finished a keep-alive connection with c->bread=%lu, c->length=%lu \n", c->bread, c->length[c->url_idx - 1]);
             /* finished a keep-alive connection */
-            // printf("mylog, finished a keep-alive connection, c->bread=%lu, c->length=%lu, c->url_idx=%d, c->cur_req_idx = %d, req_num=%d, c->bread=%lu, END\n", c->bread, c->length, c->url_idx, c->cur_req_idx, req_num, c->bread);
             good++;
-            /* save out time */
-            // if (good == 1) {
-            //     /* first time here */
-            //     doclen = c->bread;
-            // }
-            // else if (c->bread != doclen) {
-            //     bad++;
-            //     err_length++;
-            // }
+            
             if (c->bread != c->length[c->url_idx - 1]){
                 bad++;
                 err_length++;
@@ -1837,8 +1705,11 @@ static void read_connection(struct connection * c)
                     s->ctime     = c->ctime;
                     s->time      = ap_max(0, c->done - c->ftime);
                     s->waittime  = c->waittime;
-                }else
+                } 
+                else {
                     c->url_idx = 0;
+                }
+                    
                 if (heartbeatres && !(done % heartbeatres)) {
                     fprintf(stderr, "Completed %d requests\n", done);
                     fflush(stderr);
@@ -1853,7 +1724,6 @@ static void read_connection(struct connection * c)
             // todo printf("mylog, c->read=%lu, totalbread=%lu, c->url_idx=%d, END\n", c->read, totalbread, c->url_idx);
             /* zero connect time with keep-alive */
             // c->start = c->connect = lasttime = apr_time_now();
-            // printf("c->url_idx=%d, done=%d, req_num=%d, c->cur_req_idx=%d\n", c->url_idx, done, req_num, c->cur_req_idx);
             lasttime = apr_time_now();
             write_request(c);
         }
@@ -1969,105 +1839,6 @@ void *poll_thread(){
             }
         }
         
-
-
-//         apr_int32_t n;
-//         const apr_pollfd_t *pollresults;    //!!??
-
-//         n = concurrency;
-//         do {
-//             //!!??
-//             status = apr_pollset_poll(readbits, aprtimeout, &n, &pollresults);  //!!??
-//         } while (APR_STATUS_IS_EINTR(status));
-//         if (status != APR_SUCCESS)
-//             apr_err("apr_poll", status);
-
-//         if (!n) {
-//             err("\nServer timed out\n\n");
-//         }
-//         // printf("mylog, n = %d, END\n", n);
-//         for (int i = 0; i < n; i++) {
-//             const apr_pollfd_t *next_fd = &(pollresults[i]);    //!!??
-//             struct connection *c;
-
-//             c = next_fd->client_data;
-            
-//             /*
-//              * If the connection isn't connected how can we check it?
-//              */
-//             if (c->state == STATE_UNCONNECTED)
-//                 continue;
-
-//             rv = next_fd->rtnevents;
-
-// #ifdef USE_SSL
-//             if (c->state == STATE_CONNECTED && c->ssl && SSL_in_init(c->ssl)) {
-//                 ssl_proceed_handshake(c);
-//                 continue;
-//             }
-// #endif
-
-//             /*
-//              * Notes: APR_POLLHUP is set after FIN is received on some
-//              * systems, so treat that like APR_POLLIN so that we try to read
-//              * again.
-//              *
-//              * Some systems return APR_POLLERR with APR_POLLHUP.  We need to
-//              * call read_connection() for APR_POLLHUP, so check for
-//              * APR_POLLHUP first so that a closed connection isn't treated
-//              * like an I/O error.  If it is, we never figure out that the
-//              * connection is done and we loop here endlessly calling
-//              * apr_poll().
-//              */
-//             if ((rv & APR_POLLIN) || (rv & APR_POLLPRI) || (rv & APR_POLLHUP)){
-//                 // printf("\nmylog, APR_POLLIN, END\n");
-//                 read_connection(c);     //!!??
-//             }
-//             if ((rv & APR_POLLERR) || (rv & APR_POLLNVAL)) {
-//                 bad++;
-//                 err_except++;
-//                 /* avoid apr_poll/EINPROGRESS loop on HP-UX, let recv discover ECONNREFUSED */
-//                 if (c->state == STATE_CONNECTING) { 
-//                     read_connection(c);     //!!??
-//                 }
-//                 else { 
-//                     start_connect(c);       //!!??
-//                 }
-//                 continue;
-//             }
-//             if (rv & APR_POLLOUT) {
-//                 // printf("\nmylog, APR_POLLOUT, END\n");
-//                 if (c->state == STATE_CONNECTING) {
-//                     rv = apr_socket_connect(c->aprsock, destsa);    //!!??
-//                     // printf("\nmylog, APR_POLLOUT STATE_CONNECTING, rv=%d, END\n", rv);
-//                     if (rv != APR_SUCCESS) {
-//                         apr_socket_close(c->aprsock);   //!!??
-//                         err_conn++;
-//                         if (bad++ > 10) {
-//                             fprintf(stderr,
-//                                     "\nTest aborted after 10 failures\n\n");
-//                             apr_err("apr_socket_connect()", rv);
-//                         }
-//                         set_conn_state(c, STATE_UNCONNECTED);
-//                         start_connect(c);   //!!??
-//                         continue;
-//                     }
-//                     else {
-//                         set_conn_state(c, STATE_CONNECTED);
-//                         started++;
-// #ifdef USE_SSL
-//                         if (c->ssl)
-//                             ssl_proceed_handshake(c);
-//                         else
-// #endif
-//                         write_request(c);   //!!??
-//                     }
-//                 }
-//                 else {
-//                     write_request(c);
-//                 }
-//             }
-//         }
     } while (lasttime < stoptime && done < concurrency);
 }
 
@@ -2107,7 +1878,7 @@ static void test(void)
 
     stats = calloc(concurrency, sizeof(struct data));
 
-    epoll_size = concurrency;
+    epoll_size = concurrency + 1;
     printf("start nts_raw_epoll_create...\n");
     epoll_fd = nts_raw_epoll_create(epoll_size);
     if (epoll_fd < 0) {
@@ -2116,13 +1887,6 @@ static void test(void)
     events = (struct epoll_event*) calloc(epoll_size, sizeof(struct epoll_event));
 
     conn_ht = apr_hash_make(cntxt);
-
-
-    //!!
-    // if ((status = apr_pollset_create(&readbits, concurrency, cntxt,
-    //                                  APR_POLLSET_NOCOPY)) != APR_SUCCESS) {
-    //     apr_err("apr_pollset_create failed", status);
-    // }
 
     /* add default headers if necessary */
     if (!opt_host) {
