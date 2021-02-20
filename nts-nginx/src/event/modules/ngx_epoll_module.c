@@ -1042,14 +1042,12 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             rev->ready = 1;
 
             if (flags & NGX_POST_EVENTS) {
-                printf("flags & NGX_POST_EVENTS\n");
                 queue = rev->accept ? &ngx_posted_accept_events
                                     : &ngx_posted_events;
 
                 ngx_post_event(rev, queue);
 
             } else {
-                printf("rev->handler(rev)\n");
                 rev->handler(rev);
             }
         }
