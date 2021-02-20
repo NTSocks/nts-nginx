@@ -817,13 +817,6 @@ static void write_request(struct connection * c)
             return;
         }
 
-        // e = apr_socket_send(c->aprsock, request[c->url_idx] + c->rwrote, &l);
-        // if (e != APR_SUCCESS && !APR_STATUS_IS_EAGAIN(e)) {
-        //     epipe++;
-        //     printf("Send request failed!\n");
-        //     close_connection(c);    //!!??
-        //     return;
-        // }
         totalposted += l;
         c->rwrote += l;
         c->rwrite -= l;
@@ -1495,7 +1488,6 @@ static void read_connection(struct connection * c)
     char *part;
     char respcode[4];       /* 3 digits and null */
     int rc = 0;
-    printf("read_connection start... [c->bread = %lu]\n", c->bread);
 
     while (true) {
         r = sizeof(buffer);
@@ -1551,7 +1543,6 @@ static void read_connection(struct connection * c)
             int l = 4;
             apr_size_t space = CBUFFSIZE - c->cbx - 1; /* -1 allows for \0 term */
             int tocopy = (space < r) ? space : r;
-            printf("space = %lu, r = %lu, tocopy = %u \n", space, r, tocopy);
     #ifdef NOT_ASCII
             apr_size_t inbytes_left = space, outbytes_left = space;
 
@@ -1604,7 +1595,6 @@ static void read_connection(struct connection * c)
                 }
             }
             else {
-                printf("have full header with c->cbuff = %s \n\n", c->cbuff);
                 /* have full header */
                 if (!good) {
                     /*
@@ -1668,25 +1658,17 @@ static void read_connection(struct connection * c)
                             c->length[c->url_idx - 1] = 0; 
                     }
                 }
-                printf("[Inheader Before] c->bread = %lu, c->cbx = %u, (s + l - c->cbuff) = %lu, r= %lu, tocopy= %u \n",
-                        c->bread, c->cbx, (s + l - c->cbuff), r, tocopy);
                 c->bread += c->cbx - (s + l - c->cbuff) + r - tocopy;
                 totalbread += c->bread;
-                printf("receive header: c->bread = %lu, totalbread = %lu, r = %lu\n", c->bread, totalbread, r);
             }
-            // todo printf("mylog, c->length=%lu, END\n", c->length);
         }
         else {
             /* outside header, everything we have read is entity body */
             c->bread += r;
             totalbread += r;
-            printf("receive body: c->bread = %lu, totalbread = %lu, r = %lu\n", c->bread, totalbread, r);
         }
         
-        printf("ready to judge: c->bread=%lu, c->length=%lu, c->keepalive=%d, c->url_idx = %d, c->cur_req_idx = %d\n", 
-                c->bread, c->length[c->url_idx - 1], c->keepalive, c->url_idx, c->cur_req_idx);
         if (c->keepalive && (c->bread >= c->length[c->url_idx - 1])) {
-            printf("finished a keep-alive connection with c->bread=%lu, c->length=%lu \n", c->bread, c->length[c->url_idx - 1]);
             /* finished a keep-alive connection */
             good++;
             
@@ -1721,7 +1703,6 @@ static void read_connection(struct connection * c)
             c->cbx = 0;
             // printf("c->waittime=%ld\n", c->waittime);
             c->read = c->bread = 0;
-            // todo printf("mylog, c->read=%lu, totalbread=%lu, c->url_idx=%d, END\n", c->read, totalbread, c->url_idx);
             /* zero connect time with keep-alive */
             // c->start = c->connect = lasttime = apr_time_now();
             lasttime = apr_time_now();
@@ -1879,7 +1860,6 @@ static void test(void)
     stats = calloc(concurrency, sizeof(struct data));
 
     epoll_size = concurrency + 1;
-    printf("start nts_raw_epoll_create...\n");
     epoll_fd = nts_raw_epoll_create(epoll_size);
     if (epoll_fd < 0) {
         apr_err("nts_raw_epoll_create failed", epoll_fd);
