@@ -937,7 +937,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 
 #if (NGX_USE_NTS)
     // for nts
-    events = nts_raw_epoll_wait(nts_ep, nts_event_list, (int) nts_nevents, timer);
+    events = nts_raw_epoll_wait(nts_ep, nts_event_list, (int) nts_nevents, -1); // timer is replaced to '-1' for NTS
     if (events <= 0) {
 #endif
         events = epoll_wait(ep, event_list, (int) nevents, timer);

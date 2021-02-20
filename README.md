@@ -96,14 +96,14 @@ cd ./nginx-nts/nts-nginx
         worker_connections  1024;
     }
 
-
     http {
         include       mime.types;
         default_type  application/octet-stream;
 
         sendfile        on;
 
-        keepalive_timeout  65;
+        keepalive_timeout  1200s;
+        keepalive_requests 100000;
 
         server {
             listen       10.176.22.211:80;
@@ -114,16 +114,13 @@ cd ./nginx-nts/nts-nginx
                 index  index.html index.htm;
             }
 
-
             # redirect server error pages to the static page /50x.html
             #
             error_page   500 502 503 504  /50x.html;
             location = /50x.html {
                 root   html;
             }
-
         }
-
     }
     ```
 
