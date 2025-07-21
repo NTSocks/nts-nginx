@@ -1,8 +1,8 @@
-#ApacheBench-ab
+# ApacheBench-ab
 
 Stand alone apache bench - Apache HTTP server benchmarking tool.
 
-##Build Instructions
+## Build Instructions
 
 ```bash
 Build:   
@@ -11,9 +11,9 @@ Clean:
         make clean
 ```
 
-##Usage
+## Usage
 
-#####Simplest Usgae
+##### Simplest Usgae
        #ab -c 25 -n 100 http://www.apache.org/     
            
        The three options are:     
@@ -21,7 +21,7 @@ Clean:
        *   number of requests(-n 100)    
        *   URL(http://www.apache.org)   
 
-#####Using with GnuPlot
+##### Using with GnuPlot
 
 ```bash
        #ab -c 25 -n 100 -r -g out.dat http://www.apache.org
@@ -29,7 +29,7 @@ Clean:
        #gnuplot plot.p
 ```
 
-####SYNOPSI
+#### SYNOPSI
 
 ```bash
        ab [ -A auth-username:password ] [ -b windowsize ] [ -c concurrency ] [
@@ -43,7 +43,7 @@ Clean:
 ```
 
 
-####SUMMARY
+#### SUMMARY
 
        ab is a tool for benchmarking your Apache Hypertext  Transfer  Protocol
        (HTTP)  server.  It  is  designed to give you an impression of how your
@@ -53,7 +53,7 @@ Clean:
 
 
 
-####OPTIONS
+#### OPTIONS
 
 ```bash
        -A auth-username:password
@@ -175,7 +175,7 @@ Clean:
               Specify SSL/TLS cipher suite (See openssl ciphers).
 ```
 
-####BUGS
+#### BUGS
 
        There are various statically declared buffers of fixed length. Combined
        with the lazy parsing of the command line arguments, the response head‐
