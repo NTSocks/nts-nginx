@@ -1,17 +1,19 @@
-#ApacheBench-ab#
+#ApacheBench-ab
 
-Stand alone apache bench - Apache HTTP server benchmarking tool
+Stand alone apache bench - Apache HTTP server benchmarking tool.
 
-##Build Instructions##
+##Build Instructions
 
+```bash
 Build:   
-        $make    
+        make    
 Clean:    
-        $make clean    
+        make clean
+```
 
-##Usage##
+##Usage
 
-#####Simplest Usgae#####
+#####Simplest Usgae
        #ab -c 25 -n 100 http://www.apache.org/     
            
        The three options are:     
@@ -19,12 +21,17 @@ Clean:
        *   number of requests(-n 100)    
        *   URL(http://www.apache.org)   
 
-#####Using with GnuPlot#####    
+#####Using with GnuPlot
+
+```bash
        #ab -c 25 -n 100 -r -g out.dat http://www.apache.org
        Use the plot.p template coming with the source 
        #gnuplot plot.p
+```
 
-####SYNOPSIS####
+####SYNOPSI
+
+```bash
        ab [ -A auth-username:password ] [ -b windowsize ] [ -c concurrency ] [
        -C cookie-name=value ] [ -d ] [ -e csv-file ] [ -f protocol ] [ -g gnu‐
        plot-file ] [ -h ] [ -H custom-header ] [ -i ] [ -k ] [ -n requests ] [
@@ -33,10 +40,11 @@ Clean:
        bosity] [ -V ] [ -w ] [ -x <table>-attributes ] [ -X proxy[:port]  ]  [
        -y  <tr>-attributes  ]  [  -z  <td>-attributes  ]  [  -Z  ciphersuite ]
        [http[s]://]hostname[:port]/path
+```
 
 
+####SUMMARY
 
-####SUMMARY####
        ab is a tool for benchmarking your Apache Hypertext  Transfer  Protocol
        (HTTP)  server.  It  is  designed to give you an impression of how your
        current Apache installation performs. This  especially  shows  you  how
@@ -45,7 +53,9 @@ Clean:
 
 
 
-####OPTIONS####
+####OPTIONS
+
+```bash
        -A auth-username:password
               Supply BASIC Authentication credentials to the server. The user‐
               name  and  password  are separated by a single : and sent on the
@@ -163,9 +173,10 @@ Clean:
 
        -Z ciphersuite
               Specify SSL/TLS cipher suite (See openssl ciphers).
+```
 
+####BUGS
 
-####BUGS####
        There are various statically declared buffers of fixed length. Combined
        with the lazy parsing of the command line arguments, the response head‐
        ers from the server and other external inputs, this might bite you.
